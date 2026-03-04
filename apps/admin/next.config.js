@@ -1,13 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     output: 'standalone',
-    experimental: {
-        outputFileTracingRoot: require('path').join(__dirname, '../../'),
-    },
+    outputFileTracingRoot: require('path').join(__dirname, '../../'),
     transpilePackages: ['@vualiku/shared'],
     images: {
         unoptimized: true,
     },
+    experimental: {},
 };
 
 module.exports = nextConfig;
