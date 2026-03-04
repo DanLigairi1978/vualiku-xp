@@ -1,0 +1,119 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Endor Forest Evening Palette */
+    --background: 160 20% 4%;
+    /* Deep Forest Night */
+    --foreground: 60 20% 98%;
+    /* Misty Off-white */
+    --card: 160 20% 8%;
+    --card-foreground: 60 20% 98%;
+    --popover: 160 20% 6%;
+    --popover-foreground: 60 20% 98%;
+    --primary: 140 60% 30%;
+    /* Jungle Green */
+    --primary-foreground: 60 20% 98%;
+    --secondary: 25 40% 45%;
+    /* Earthy Wood/Brown */
+    --secondary-foreground: 25 10% 98%;
+    --muted: 160 10% 15%;
+    --muted-foreground: 160 10% 65%;
+    --accent: 35 100% 60%;
+    /* Evening Glow (Amber) */
+    --accent-foreground: 160 20% 4%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 160 10% 20%;
+    --input: 160 10% 20%;
+    --ring: 140 60% 40%;
+    --radius: 1.5rem;
+    /* Larger rounded corners for organic cards */
+  }
+
+  /* Force dark mode behavior as default for this tech-noir look */
+  .dark {
+    --background: 220 30% 2%;
+    --foreground: 210 20% 98%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .date-picker-icon-light::-webkit-calendar-picker-indicator {
+    filter: invert(0.8) brightness(1.2);
+  }
+
+  .glass-nav {
+    @apply bg-background/70 backdrop-blur-md border-b;
+  }
+
+  .angled-button {
+    clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%);
+  }
+
+  .font-headline {
+    letter-spacing: -0.05em;
+    text-transform: uppercase;
+  }
+
+  .glass-pill {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-full px-6 py-2 shadow-2xl;
+  }
+
+  .forest-card {
+    @apply bg-card/60 backdrop-blur-xl border border-white/5 rounded-[2rem] p-6 shadow-2xl transition-all hover:scale-[1.02] hover:bg-card/80;
+  }
+
+  .misty-bg {
+    background: radial-gradient(circle at 50% -20%, rgba(45, 79, 30, 0.2) 0%, transparent 60%),
+      radial-gradient(circle at 0% 100%, rgba(109, 76, 65, 0.15) 0%, transparent 50%),
+      linear-gradient(to bottom, transparent 60%, rgba(0, 0, 0, 0.4) 100%);
+  }
+
+  .font-tahoma {
+    font-family: 'Tahoma', sans-serif;
+  }
+
+  .btn-forest {
+    @apply px-8 py-4 rounded-full bg-primary text-white font-bold transition-all active:scale-95;
+    box-shadow: 0 0 0px rgba(45, 79, 30, 0);
+  }
+
+  .btn-forest:hover {
+    box-shadow: 0 0 30px rgba(45, 79, 30, 0.5);
+  }
+
+  .btn-outline-forest {
+    @apply px-8 py-4 rounded-full border-2 border-primary/30 bg-transparent text-white font-bold transition-all hover:bg-primary/10 hover:border-primary;
+  }
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}

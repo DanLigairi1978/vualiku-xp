@@ -1,0 +1,52 @@
+{
+    "placeholderImages": [
+        {
+            "id": "hero-fiji",
+            "description": "A stunning aerial view of a pristine beach in Fiji, with turquoise water and white sand.",
+            "imageUrl": "/images/hero-fiji.jpg",
+            "imageHint": "Fiji beach"
+        },
+        {
+            "id": "waisali-nature",
+            "description": "A lush waterfall cascading into a pool in Waisali Nature Reserve.",
+            "imageUrl": "/images/waisali-nature.jpg",
+            "imageHint": "Fiji waterfall"
+        },
+        {
+            "id": "vorovoro-island",
+            "description": "A serene beach on Vorovoro Island with a traditional Fijian boat.",
+            "imageUrl": "/images/vorovoro-island.jpg",
+            "imageHint": "Fiji island"
+        },
+        {
+            "id": "dromuninuku-heritage",
+            "description": "A traditional Fijian bure (hut) in a village setting for Dromuninuku Heritage and Tours.",
+            "imageUrl": "/images/dromuninuku-heritage.jpg",
+            "imageHint": "Fiji village"
+        },
+        {
+            "id": "drawa-block",
+            "description": "A dense, green forest representing the Drawa Eco Retreat's conservation efforts.",
+            "imageUrl": "/images/drawa-block.jpg",
+            "imageHint": "Fiji forest"
+        },
+        {
+            "id": "vanualevu-farmstay",
+            "description": "Rolling green hills and farmland of a Vanualevu farmstay.",
+            "imageUrl": "/images/vanualevu-farmstay.jpg",
+            "imageHint": "Fiji farm"
+        },
+        {
+            "id": "devo-beach",
+            "description": "A beautiful tropical beach on the Tunuloa Peninsula.",
+            "imageUrl": "/images/devo-beach.jpg",
+            "imageHint": "tropical beach"
+        },
+        {
+            "id": "baleyaga-nature",
+            "description": "A sunlit jungle trail.",
+            "imageUrl": "/images/baleyaga-nature.jpg",
+            "imageHint": "jungle trail"
+        }
+    ]
+}

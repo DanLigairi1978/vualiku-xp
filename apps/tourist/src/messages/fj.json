@@ -1,0 +1,99 @@
+{
+    "nav": {
+        "home": "Vale",
+        "explore": "Vakasaqara",
+        "directory": "Kena iWase",
+        "booking": "Tukuna",
+        "about": "Tukutuku",
+        "contact": "Veitaratara",
+        "map": "iYaloyalo ni Vanua",
+        "packages": "Veika iRairai"
+    },
+    "hero": {
+        "tagline": "Veiqaravi Vakavanua",
+        "title": "Kunea na Nodra Vakarautaki ni iTaukei",
+        "subtitle": "Kunea na veika e vakarau sara tu mai Vanua Levu — mai na veisiga ni uca kei na wavoliti wasaliwa.",
+        "cta_explore": "Vakasaqara Vakalevu",
+        "cta_book": "Tukuna Na Nomu Lako"
+    },
+    "homepage": {
+        "featured_title": "Sa Vakarautaki Vei Iko",
+        "featured_subtitle": "Na veika sa digitaki me vakataki koya na yalo ni Vanua Levu.",
+        "view_all": "RAICA NA KENA IWASE TAUCOKO",
+        "stats_operators": "iVakarau",
+        "stats_activities": "Veiqaravi",
+        "stats_reviews": "Dauvakayagataka Marau"
+    },
+    "booking": {
+        "title": "iVola ni Tukutuku",
+        "subtitle": "Curu tiko na nomu itukutuku ka vakarautaka na nomu lako.",
+        "select_operator": "Digitaka Na Nomu Vanua",
+        "select_operator_desc": "Digitaka e dua na ivakarau me raici kina na nodra veiqaravi.",
+        "choose_operator": "Digitaka edua na iVakarau...",
+        "first_name": "iMatai ni Yaca",
+        "last_name": "Yaca ni Luvequ",
+        "email": "iVolataratara",
+        "phone": "Talevoni (Sega ni Dua na Ka)",
+        "origin": "iYasana ni Tekivu (Siga 1)",
+        "origin_desc": "Na nomu lako me yaco kina na imatai ni vanua e na tekivu mai ke.",
+        "select_event": "Digitaka e Dua na Veiqaravi",
+        "adventure": "Veiqaravi / iRairai",
+        "date": "Siga ni Veiqaravi",
+        "pax": "Lewe ni Mataivalu",
+        "add_to_basket": "Vakarurutaka ki na Kato",
+        "reset": "Vakacurumaka Taucoko",
+        "whatsapp_opt_in": "Rawata na iTukutuku WhatsApp",
+        "whatsapp_desc": "Rawata na vakadinati, vakananumi e 24-na-aua, kei na kerekere ni vakadidike.",
+        "whatsapp_number": "Naba ni WhatsApp",
+        "whatsapp_country": "Vakacurumaka na kena naba ni vanua (m.d. +679 na Viti)"
+    },
+    "basket": {
+        "title": "Kato",
+        "items": "iVolatukutuku",
+        "empty": "Sa lala na nomu kato.",
+        "empty_hint": "Digitaka e dua na veiqaravi me tara kina na nomu lako.",
+        "total": "iLevu Taucoko",
+        "checkout": "Curumaka ki na Saumi"
+    },
+    "explore": {
+        "discover": "Kunea",
+        "title": "Vakasaqara Veiqaravi",
+        "subtitle": "Vakasaqara, soli, ka kunea na veika vakarautaki mai Viti.",
+        "search_placeholder": "Vakasaqara veiqaravi... (m.d. qoli, lako yavatu, yanuyanu)",
+        "filters": "iSoli",
+        "categories": "Mataqali",
+        "price_range": "iSevu ni Isau",
+        "operators": "iVakarau",
+        "no_results": "Sega na Veiqaravi e Kunei",
+        "no_results_hint": "Tovolea me vakadewataki na nomu isoli."
+    },
+    "review": {
+        "title": "Tukuna Na Nomu Raica",
+        "subtitle": "Na nomu itukutuku e vukea na dua tale na dauvakalewena ka tokona na noda vanua.",
+        "rating": "Na Nomu Vakadeitaki",
+        "review_title": "iUlu ni Vakadidike",
+        "review_title_placeholder": "Vakamacalataka na nomu raica",
+        "review_text": "Na Nomu Vakadidike",
+        "review_text_placeholder": "Tukuna vei keimami na nomu veiqaravi... Na cava o lomana? Na cava e ka bibi?",
+        "your_name": "Na Nomu Yaca",
+        "photos": "Vakarurutaka na iYaya iTaba",
+        "submit": "Curumaka na Vakadidike",
+        "success_title": "Vinaka Vakalevu!",
+        "success_message": "Sa curumaki na nomu vakadidike me vakadonui."
+    },
+    "common": {
+        "per_person": "tagane",
+        "per_night": "bogi",
+        "loading": "Vakarautaki tiko...",
+        "auth_required": "E Gadrevi me Vakadeitaki",
+        "auth_message": "Me curu tiko ki na nomu Vualiku XP account.",
+        "sign_in": "Vola / Curu ki Loma",
+        "currency": "FJD"
+    },
+    "footer": {
+        "copyright": "© {year} Vualiku XP. Na dodonu e taucoko e tiki ni lawa.",
+        "tagline": "Veiqaravi vakavanua ni eco-tourism kei Vanua Levu, Viti.",
+        "quick_links": "iYasayasa Lekaleka",
+        "contact_us": "Veitaratara Kei Keimami"
+    }
+}

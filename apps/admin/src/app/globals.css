@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --primary: #9acd32;
+    /* YellowGreen - Vualiku Signature */
+}
+
+@layer base {
+    body {
+        @apply bg-slate-950 text-slate-50 antialiased;
+    }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "vualiku-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:tourist": "npm run dev -w apps/tourist",
+    "dev:admin": "npm run dev -w apps/admin",
+    "build:tourist": "npm run build -w apps/tourist",
+    "build:admin": "npm run build -w apps/admin",
+    "lint": "npm run lint -ws",
+    "typecheck": "npm run typecheck -ws"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0"
+  },
+  "dependencies": {
+    "cross-env": "^10.1.0"
+  }
+}

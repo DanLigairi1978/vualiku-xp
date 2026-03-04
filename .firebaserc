@@ -1,0 +1,13 @@
+{
+  "projects": {
+    "default": "vualiku-xp"
+  },
+  "targets": {
+    "vualiku-xp": {
+      "hosting": {
+        "tourist": ["vualiku-xp"],
+        "admin": ["vualiku-admin"]
+      }
+    }
+  }
+}

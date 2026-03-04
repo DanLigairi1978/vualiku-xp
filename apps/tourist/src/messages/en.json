@@ -1,0 +1,99 @@
+{
+    "nav": {
+        "home": "Home",
+        "explore": "Explore",
+        "directory": "Directory",
+        "booking": "Book Now",
+        "about": "About",
+        "contact": "Contact",
+        "map": "Map",
+        "packages": "Packages"
+    },
+    "hero": {
+        "tagline": "Community-Led Eco-Tourism",
+        "title": "Discover Authentic Fijian Adventures",
+        "subtitle": "Explore Vanua Levu's hidden treasures — from misty mountain treks to crystal lagoon snorkeling.",
+        "cta_explore": "Explore Adventures",
+        "cta_book": "Book Your Trip"
+    },
+    "homepage": {
+        "featured_title": "Recommended for You",
+        "featured_subtitle": "Handpicked adventures that define the spirit of Vanua Levu.",
+        "view_all": "VIEW ALL DIRECTORY",
+        "stats_operators": "Tour Operators",
+        "stats_activities": "Adventures",
+        "stats_reviews": "Happy Travellers"
+    },
+    "booking": {
+        "title": "Booking Portal",
+        "subtitle": "Enter your details and organize your itinerary.",
+        "select_operator": "Select Your Tour Destination",
+        "select_operator_desc": "Choose an operator to view their exclusive activities.",
+        "choose_operator": "Choose an Operator...",
+        "first_name": "First Name",
+        "last_name": "Last Name",
+        "email": "Email Address",
+        "phone": "Phone (Optional)",
+        "origin": "Starting Point (Day 1 Transit Anchor)",
+        "origin_desc": "Your transit transfer to your first operator will originate from here.",
+        "select_event": "Select An Event",
+        "adventure": "Adventure / Package",
+        "date": "Adventure Date",
+        "pax": "Pax / Guests",
+        "add_to_basket": "Add to Event Basket",
+        "reset": "Reset All Choices",
+        "whatsapp_opt_in": "Receive WhatsApp Notifications",
+        "whatsapp_desc": "Get booking confirmations, 24-hour reminders, and post-trip review requests via WhatsApp.",
+        "whatsapp_number": "WhatsApp Number",
+        "whatsapp_country": "Include country code (e.g. +679 for Fiji)"
+    },
+    "basket": {
+        "title": "Basket",
+        "items": "Items",
+        "empty": "Your basket is empty.",
+        "empty_hint": "Select an adventure to build your itinerary.",
+        "total": "Total",
+        "checkout": "Proceed to Checkout"
+    },
+    "explore": {
+        "discover": "Discover",
+        "title": "Explore Adventures",
+        "subtitle": "Search, filter, and discover authentic Fijian experiences.",
+        "search_placeholder": "Search adventures... (e.g. snorkeling, trekking, island)",
+        "filters": "Filters",
+        "categories": "Categories",
+        "price_range": "Price Range",
+        "operators": "Operators",
+        "no_results": "No Adventures Found",
+        "no_results_hint": "Try adjusting your search or filters."
+    },
+    "review": {
+        "title": "Share Your Experience",
+        "subtitle": "Your feedback helps other travellers and supports our local communities.",
+        "rating": "Your Rating",
+        "review_title": "Review Title",
+        "review_title_placeholder": "Summarize your experience",
+        "review_text": "Your Review",
+        "review_text_placeholder": "Tell us about your adventure... What did you love? What made it special?",
+        "your_name": "Your Name",
+        "photos": "Add Photos",
+        "submit": "Submit Review",
+        "success_title": "Vinaka Vakalevu!",
+        "success_message": "Your review has been submitted for approval."
+    },
+    "common": {
+        "per_person": "person",
+        "per_night": "night",
+        "loading": "Loading...",
+        "auth_required": "Authentication Required",
+        "auth_message": "You must be signed into your Vualiku XP account.",
+        "sign_in": "Sign Up / Login",
+        "currency": "FJD"
+    },
+    "footer": {
+        "copyright": "© {year} Vualiku XP. All rights reserved.",
+        "tagline": "Community-led eco-tourism platform for Vanua Levu, Fiji.",
+        "quick_links": "Quick Links",
+        "contact_us": "Contact Us"
+    }
+}

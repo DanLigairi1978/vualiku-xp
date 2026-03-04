@@ -1,0 +1,25 @@
+{
+    "hosting": [
+        {
+            "target": "tourist",
+            "source": "apps/tourist",
+            "predeploy": [
+                "npm run build:tourist"
+            ]
+        },
+        {
+            "target": "admin",
+            "source": "apps/admin",
+            "predeploy": [
+                "npm run build:admin"
+            ]
+        }
+    ],
+    "firestore": {
+        "rules": "firestore.rules",
+        "indexes": "firestore.indexes.json"
+    },
+    "storage": {
+        "rules": "storage.rules"
+    }
+}

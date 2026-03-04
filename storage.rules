@@ -1,0 +1,23 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper to check for admin role
+    function isAdmin() {
+      return request.auth != null && request.auth.token.role == 'admin';
+    }
+
+    // Waivers - restrict access to owner or admin
+    match /waivers/{waiverDoc} {
+      allow read: if request.auth != null &&
+        (request.auth.uid == resource.metadata.userId || isAdmin());
+      allow write: if false; // Only server-side Admin SDK writes
+    }
+
+    // Default: Allow authenticated read, admin write
+    match /{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+  }
+}

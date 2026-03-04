@@ -1,0 +1,48 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Define Admin check using custom claims
+    function isAdmin() {
+      return request.auth != null && request.auth.token.role == 'admin';
+    }
+    
+    match /allBookings/{bookingId} {
+      // 1. Only the booking owner or an admin can read a booking.
+      allow read: if request.auth != null && (
+        resource.data.userId == request.auth.uid || isAdmin()
+      );
+      
+      // 2. Only authenticated users can create bookings, 
+      //    attaching their authentic UID so they can't forge someone else's booking.
+      //    Also enforce minimum validation: pax >= 1, totalFee > 0.
+      allow create: if request.auth != null 
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.participants >= 1
+        && request.resource.data.totalFee > 0;
+      
+      // 3. Modifying a booking (check-in, cancel) is strictly reserved for Admins.
+      allow update, delete: if isAdmin();
+    }
+
+    // Operator Applications — max 1 per user (prevent DB bloat L4-H3)
+    // Document ID must match the provided lowercased email, and cannot overwrite existing
+    match /operatorApplications/{appId} {
+      allow create: if appId == request.resource.data.email
+                    && !exists(/databases/$(database)/documents/operatorApplications/$(appId));
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Reviews — public read, authenticated create, admin manage
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if isAdmin();
+    }
+
+    // User profiles — owner-only access
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
