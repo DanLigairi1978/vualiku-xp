@@ -10,7 +10,7 @@ import { Logo } from '@/components/logo';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { LogOut, Menu, User as UserIcon, LayoutDashboard } from 'lucide-react';
+import { LogOut, Menu, User as UserIcon } from 'lucide-react';
 import { useUser, useAuth } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { LanguageToggle } from '@/components/ui/language-toggle';
@@ -115,10 +115,6 @@ export default function Header() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-primary/10" />
-                <DropdownMenuItem onClick={() => router.push('/operator/dashboard')} className="focus:bg-primary/10 focus:text-primary cursor-pointer">
-                  <LayoutDashboard className="mr-2 h-4 w-4" />
-                  <span>Dashboard</span>
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push('/profile')} className="focus:bg-primary/10 focus:text-primary cursor-pointer">
                   <UserIcon className="mr-2 h-4 w-4" />
                   <span>My Profile</span>
