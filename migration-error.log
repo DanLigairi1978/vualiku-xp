@@ -1,0 +1,19 @@
+Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at GoogleAuth.getApplicationDefaultAsync (C:\Users\danli\Documents\Vualiku XP\node_modules\google-auth-library\build\src\auth\googleauth.js:287:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async GoogleAuth._GoogleAuth_determineClient (C:\Users\danli\Documents\Vualiku XP\node_modules\google-auth-library\build\src\auth\googleauth.js:834:32)
+    at async GoogleAuth.getClient (C:\Users\danli\Documents\Vualiku XP\node_modules\google-auth-library\build\src\auth\googleauth.js:698:20)
+    at async GrpcClient._getCredentials (C:\Users\danli\Documents\Vualiku XP\node_modules\google-gax\src\grpc.ts:209:20)
+    at async GrpcClient.createStub (C:\Users\danli\Documents\Vualiku XP\node_modules\google-gax\src\grpc.ts:426:19)
+Caused by: Error
+    at _firestore._traceUtil.startActiveSpan (C:\Users\danli\Documents\Vualiku XP\node_modules\@google-cloud\firestore\build\src\write-batch.js:438:27)
+    at C:\Users\danli\Documents\Vualiku XP\node_modules\@google-cloud\firestore\build\src\telemetry\enabled-trace-util.js:110:30
+    at NoopContextManager.with (C:\Users\danli\Documents\Vualiku XP\node_modules\@opentelemetry\api\src\context\NoopContextManager.ts:31:15)
+    at ContextAPI.with (C:\Users\danli\Documents\Vualiku XP\node_modules\@opentelemetry\api\src\api\context.ts:77:42)
+    at NoopTracer.startActiveSpan (C:\Users\danli\Documents\Vualiku XP\node_modules\@opentelemetry\api\src\trace\NoopTracer.ts:98:27)
+    at ProxyTracer.startActiveSpan (C:\Users\danli\Documents\Vualiku XP\node_modules\@opentelemetry\api\src\trace\ProxyTracer.ts:51:20)
+    at EnabledTraceUtil.startActiveSpan (C:\Users\danli\Documents\Vualiku XP\node_modules\@google-cloud\firestore\build\src\telemetry\enabled-trace-util.js:102:28)
+    at WriteBatch.commit (C:\Users\danli\Documents\Vualiku XP\node_modules\@google-cloud\firestore\build\src\write-batch.js:436:43)
+    at C:\Users\danli\Documents\Vualiku XP\node_modules\@google-cloud\firestore\build\src\reference\document-reference.js:350:31
+    at C:\Users\danli\Documents\Vualiku XP\node_modules\@google-cloud\firestore\build\src\telemetry\enabled-trace-util.js:110:30

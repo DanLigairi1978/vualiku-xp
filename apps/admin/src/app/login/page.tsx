@@ -1,31 +1,44 @@
 'use client';
 
 import { useState } from 'react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { auth } from '@vualiku/shared';
 import { useRouter } from 'next/navigation';
 import { ShieldCheck, Loader2, ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button'; // Assuming I'll create these or copy from tourist
-import { Input } from '@/components/ui/input';
+
+// Define the list of authorised admin emails here
+const ADMIN_EMAILS = [
+    'admin@vualiku.xp',
+    // Add authorised Google account emails here:
+    // 'your.email@gmail.com',
+];
 
 export default function LoginPage() {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const router = useRouter();
 
-    const handleLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleGoogleLogin = async () => {
         setLoading(true);
         setError('');
 
         try {
-            await signInWithEmailAndPassword(auth, email, password);
-            router.push('/');
+            const provider = new GoogleAuthProvider();
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
+
+            // Check if user email is in admin list
+            if (user.email && ADMIN_EMAILS.includes(user.email)) {
+                // If yes → redirect to /
+                router.push('/');
+            } else {
+                // If no → sign out + show "Access denied" error
+                await signOut(auth);
+                setError('Access denied. You are not on the authorised personnel list.');
+            }
         } catch (err: any) {
             console.error('[Login] Error:', err);
-            setError(err.message || 'Failed to sign in. Please check your credentials.');
+            setError(err.message || 'Failed to sign in with Google. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -42,31 +55,7 @@ export default function LoginPage() {
                     <p className="text-slate-400 text-sm font-light">Authorised Personnel Only</p>
                 </div>
 
-                <form onSubmit={handleLogin} className="space-y-6">
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Email System Address</label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                            placeholder="admin@vualiku.xp"
-                            className="w-full h-12 bg-slate-950 border border-slate-800 rounded-xl px-4 text-white focus:outline-none focus:border-primary/50 transition-colors"
-                        />
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Secure Passkey</label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            placeholder="••••••••"
-                            className="w-full h-12 bg-slate-950 border border-slate-800 rounded-xl px-4 text-white focus:outline-none focus:border-primary/50 transition-colors"
-                        />
-                    </div>
-
+                <div className="space-y-6">
                     {error && (
                         <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
                             <p className="text-red-400 text-xs font-medium text-center">{error}</p>
@@ -74,18 +63,18 @@ export default function LoginPage() {
                     )}
 
                     <button
-                        type="submit"
+                        onClick={handleGoogleLogin}
                         disabled={loading}
                         className="w-full h-14 bg-primary text-slate-950 font-bold rounded-xl hover:bg-primary/90 transition-all shadow-[0_0_20px_rgba(154,205,50,0.2)] disabled:opacity-50 flex items-center justify-center gap-2 group"
                     >
                         {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                             <>
-                                ACCESS COMMAND CENTRE
+                                SIGN IN WITH GOOGLE
                                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                             </>
                         )}
                     </button>
-                </form>
+                </div>
 
                 <div className="text-center">
                     <p className="text-[10px] text-slate-600 uppercase tracking-widest font-mono">Quantum Encryption Enabled</p>

@@ -1,0 +1,165 @@
+
+{
+  "entities": {
+    "TourOperator": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "TourOperator",
+      "type": "object",
+      "description": "Represents a tour operator listed in the directory.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the tour operator."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the tour operator."
+        },
+        "websiteUrl": {
+          "type": "string",
+          "description": "URL of the tour operator's website.",
+          "format": "uri"
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description of the tour operator and their offerings."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "websiteUrl",
+        "description"
+      ]
+    },
+    "Booking": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Booking",
+      "type": "object",
+      "description": "Represents a booking made by a user for an activity with a tour operator.",
+      "properties": {
+        "tourOperatorId": {
+          "type": "string",
+          "description": "Reference to TourOperator. (Relationship: TourOperator 1:N Booking)"
+        },
+        "firstName": {
+          "type": "string",
+          "description": "First name of the person making the booking."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "Last name of the person making the booking."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email of the person making the booking.",
+          "format": "email"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone number of the person making the booking."
+        },
+        "selectedActivities": {
+          "type": "array",
+          "description": "List of selected activities for the booking.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "participants": {
+          "type": "number",
+          "description": "Number of participants for the booking."
+        },
+        "totalFee": {
+          "type": "number",
+          "description": "Total fee for the booking."
+        },
+        "bookingDate": {
+          "type": "string",
+          "description": "Date of the booking (YYYY-MM-DD).",
+          "format": "date"
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the booking was created."
+        }
+      },
+      "required": [
+        "tourOperatorId",
+        "firstName",
+        "lastName",
+        "email",
+        "selectedActivities",
+        "participants",
+        "totalFee",
+        "bookingDate",
+        "createdAt"
+      ]
+    },
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the application. Does not store authentication information.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user."
+        },
+        "email": {
+          "type": "string",
+          "description": "User's email address.",
+          "format": "email"
+        },
+        "name": {
+          "type": "string",
+          "description": "User's display name."
+        }
+      },
+      "required": [
+        "id",
+        "email"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password"
+    ]
+  },
+  "firestore": {
+     "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profiles, separate from authentication information. The 'userId' parameter is the Firebase Authentication UID."
+        }
+      },
+      {
+        "path": "/allBookings/{bookingId}",
+        "definition": {
+            "entityName": "Booking",
+            "schema": {
+                "$ref": "#/backend/entities/Booking"
+            },
+            "description": "A global collection of all bookings, denormalized for admin and query purposes (like checking date availability). Documents here have the same ID as in the user's private subcollection."
+        }
+      },
+      {
+        "path": "/tourOperators/{tourOperatorId}",
+        "definition": {
+          "entityName": "TourOperator",
+          "schema": {
+            "$ref": "#/backend/entities/TourOperator"
+          },
+          "description": "Stores information about tour operators listed in the directory."
+        }
+      }
+    ]
+  }
+}

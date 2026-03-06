@@ -1,0 +1,213 @@
+﻿node.exe : 
+(node:10260) 
+ExperimentalWarning: 
+Support for loading ES 
+Module in require() is 
+an experimental 
+feature and might 
+change at any time
+At C:\Program Files\nod
+ejs\npx.ps1:29 char:3
++   & $NODE_EXE 
+$NPX_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: ((node:10260)    
+ Ex...nge at any ti    
+me:String) [], Rem    
+oteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+(Use `node 
+--trace-warnings ...` 
+to show where the 
+warning was created)
+   Ôû▓ Next.js 15.5.9
+
+   Creating an optimized production build ...
+Failed to compile.
+
+../../node_modules/agen
+t-base/dist/index.js
+Module not found: 
+Can't resolve 'net'
+
+https://nextjs.org/docs
+/messages/module-not-fo
+und
+
+Import trace for 
+requested module:
+../../node_modules/http
+s-proxy-agent/dist/inde
+x.js
+../../node_modules/fire
+base-admin/node_modules
+/gaxios/build/cjs/src/g
+axios.js
+../../node_modules/fire
+base-admin/node_modules
+/gaxios/build/cjs/src/i
+ndex.js
+../../node_modules/fire
+base-admin/node_modules
+/google-auth-library/bu
+ild/src/index.js
+../../node_modules/fire
+base-admin/lib/app/cred
+ential-internal.js
+../../node_modules/fire
+base-admin/lib/firestor
+e/firestore-internal.js
+../../node_modules/fire
+base-admin/lib/firestor
+e/index.js
+../../node_modules/fire
+base-admin/lib/esm/fire
+store/index.js
+../../packages/shared/s
+rc/lib/firebase/admin.t
+s
+../../packages/shared/s
+rc/index.ts
+./src/lib/auth-context.
+tsx
+
+../../node_modules/fire
+base-admin/lib/app/cred
+ential-internal.js
+Module not found: 
+Can't resolve 'fs'
+
+https://nextjs.org/docs
+/messages/module-not-fo
+und
+
+Import trace for 
+requested module:
+../../node_modules/fire
+base-admin/lib/firestor
+e/firestore-internal.js
+../../node_modules/fire
+base-admin/lib/firestor
+e/index.js
+../../node_modules/fire
+base-admin/lib/esm/fire
+store/index.js
+../../packages/shared/s
+rc/lib/firebase/admin.t
+s
+../../packages/shared/s
+rc/index.ts
+./src/lib/auth-context.
+tsx
+
+../../node_modules/fire
+base-admin/lib/app/life
+cycle.js
+Module not found: 
+Can't resolve 'fs'
+
+https://nextjs.org/docs
+/messages/module-not-fo
+und
+
+Import trace for 
+requested module:
+../../node_modules/fire
+base-admin/lib/app/inde
+x.js
+../../node_modules/fire
+base-admin/lib/esm/app/
+index.js
+../../packages/shared/s
+rc/lib/firebase/admin.t
+s
+../../packages/shared/s
+rc/index.ts
+./src/lib/auth-context.
+tsx
+
+../../node_modules/fire
+base-admin/lib/utils/ap
+i-request.js
+Module not found: 
+Can't resolve 'http2'
+
+https://nextjs.org/docs
+/messages/module-not-fo
+und
+
+Import trace for 
+requested module:
+../../node_modules/fire
+base-admin/lib/auth/aut
+h-api-request.js
+../../node_modules/fire
+base-admin/lib/auth/aut
+h.js
+../../node_modules/fire
+base-admin/lib/auth/ind
+ex.js
+../../node_modules/fire
+base-admin/lib/esm/auth
+/index.js
+../../packages/shared/s
+rc/lib/firebase/admin.t
+s
+../../packages/shared/s
+rc/index.ts
+./src/lib/auth-context.
+tsx
+
+../../node_modules/fire
+base-admin/node_modules
+/google-auth-library/bu
+ild/src/auth/certificat
+esubjecttokensupplier.j
+s
+Module not found: 
+Can't resolve 'fs'
+
+https://nextjs.org/docs
+/messages/module-not-fo
+und
+
+Import trace for 
+requested module:
+../../node_modules/fire
+base-admin/node_modules
+/google-auth-library/bu
+ild/src/auth/identitypo
+olclient.js
+../../node_modules/fire
+base-admin/node_modules
+/google-auth-library/bu
+ild/src/index.js
+../../node_modules/fire
+base-admin/lib/app/cred
+ential-internal.js
+../../node_modules/fire
+base-admin/lib/firestor
+e/firestore-internal.js
+../../node_modules/fire
+base-admin/lib/firestor
+e/index.js
+../../node_modules/fire
+base-admin/lib/esm/fire
+store/index.js
+../../packages/shared/s
+rc/lib/firebase/admin.t
+s
+../../packages/shared/s
+rc/index.ts
+./src/lib/auth-context.
+tsx
+
+
+> Build failed because 
+of webpack errors

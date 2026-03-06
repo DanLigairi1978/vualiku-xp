@@ -1,0 +1,3 @@
+src/app/booking/page.tsx(5,19): error TS2305: Module '"@/context/AuthContext"' has no exported member 'useUser'.
+src/components/booking/google-map-preview.tsx(47,100): error TS2322: Type '{ background: string; borderColor: string; glyphColor: string; className: string; }' is not assignable to type 'IntrinsicAttributes & PinElementOptions & { children?: ReactNode; }'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & PinElementOptions & { children?: ReactNode; }'.

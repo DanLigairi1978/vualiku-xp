@@ -1,0 +1,227 @@
+🌊  VUALIKU XP
+Platform Enhancement Mega Prompt
+Security Hardening + UX Improvements
+🔒  5 Security Fixes
+✨  4 UX Enhancements
+Prepared for Meridian Solutions PTE LTD
+March 2026  ·  Antigravity AI  ·  Vualiku XP Development Team
+How to Use This Document
+This document is a structured mega prompt designed to be handed directly to your AI coding assistant (Cursor, GitHub Copilot, Claude Code, etc.) or your development team. Each section is self-contained and includes:
+The specific problem being solved
+Exact file locations within the Vualiku XP codebase
+Implementation instructions written as developer directives
+Success criteria so you know when it's done right
+💡  TIP: You can paste each numbered section individually as a standalone prompt, or feed
+     the entire document to your AI assistant as a single session context. Either approach works.
+📋  SCOPE: This prompt does not cover the Westpac / Windcave payment integration.
+     That section will be addressed separately after your bank consultation.
+PART A — Security Hardening
+Apply all 5 improvements below to the Vualiku XP Next.js 15 / Firebase codebase. Each fix is independent and can be implemented in any order.
+S1 — Rate Limiting on All Public API Routes
+PROBLEM: The POST endpoints /api/bookings/create, /api/ai/chat, and /api/whatsapp/send are unprotected against automated abuse, enumeration, and denial-of-service attacks. A bot can fire thousands of requests with zero friction.
+Implementation Instructions
+Install Upstash Redis client and rate limiting library:
+npm install @upstash/ratelimit @upstash/redis
+Create a new file at /src/lib/ratelimit.ts with the following pattern:
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
+export const ratelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(10, "60 s"),
+  analytics: true,
+});
+Apply the rate limiter in Next.js middleware at /src/middleware.ts to intercept all /api/* routes before they reach handlers. Use the requester's IP (from x-forwarded-for header) as the identifier.
+Return HTTP 429 Too Many Requests with a JSON body { error: 'Rate limit exceeded', retryAfter: N } when the limit is breached.
+Set different window limits per route: bookings/create = 5 per 60s, ai/chat = 20 per 60s, whatsapp/send = 3 per 60s.
+Add UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN to .env.local and Firebase environment config.
+✅  SUCCESS: Automated POST floods to any /api/* endpoint return 429 after threshold. Legitimate users are unaffected.
+S2 — Webhook Signature Verification (Stripe + Twilio)
+PROBLEM: Unverified webhooks can be spoofed. A malicious actor could POST a fake payment success to /api/checkout/webhook and trigger booking confirmation + WhatsApp notification without any real payment occurring.
+Stripe Webhook — /api/checkout/webhook.ts
+Ensure stripe.webhooks.constructEvent() is called with the raw request body (not parsed JSON) and the Stripe-Signature header.
+The raw body must be accessed before any JSON middleware parses it. In Next.js App Router, use request.text() then pass to constructEvent.
+Wrap in try/catch — if signature verification throws, return HTTP 400 immediately and log the attempt.
+const sig = request.headers.get('stripe-signature');
+const rawBody = await request.text();
+const event = stripe.webhooks.constructEvent(rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET);
+Twilio Webhook — /api/whatsapp/* routes
+Install the Twilio validation library: npm install twilio
+Use twilio.validateRequest() to verify the X-Twilio-Signature header on all inbound Twilio callbacks.
+Reject requests that fail signature validation with HTTP 403.
+Store STRIPE_WEBHOOK_SECRET and TWILIO_AUTH_TOKEN exclusively in environment variables — never hardcoded.
+✅  SUCCESS: Any webhook request with an invalid or missing signature is rejected with 400/403. Booking confirmations can only be triggered by verified payment events.
+S3 — Server-Side Admin Role Guard (Remove /api/operator/check-admin)
+PROBLEM: The GET /api/operator/check-admin endpoint returns a boolean indicating admin status. This is a probeable attack surface — it allows enumeration of admin accounts and can be manipulated by a MITM or XSS attack intercepting the response.
+Implementation Instructions
+DEPRECATE the /api/operator/check-admin endpoint entirely. Remove the route file.
+Create a server-side utility at /src/lib/auth/requireAdmin.ts using Firebase Admin SDK:
+import { adminAuth, adminFirestore } from '@/firebase/admin';
+export async function requireAdmin(request: Request) {
+  const token = request.headers.get('Authorization')?.split('Bearer ')[1];
+  if (!token) throw new Error('Unauthorized');
+  const decoded = await adminAuth.verifyIdToken(token);
+  const userDoc = await adminFirestore.collection('users').doc(decoded.uid).get();
+  if (!userDoc.data()?.role !== 'admin') throw new Error('Forbidden');
+  return decoded;
+}
+Import requireAdmin at the top of every protected operator route handler (/api/operator/applications, /api/operator/activities). If it throws, return the appropriate HTTP error.
+On the frontend, derive admin UI visibility from the decoded Firebase ID token claims — not from a separate API call.
+✅  SUCCESS: Admin access is validated server-side on every protected request. No standalone endpoint exists to probe for admin status.
+S4 — API Key Hygiene & Secret Scanning
+PROBLEM: With 6+ third-party integrations (Algolia, Twilio, SendGrid, OpenWeatherMap, Stripe, Firebase), key sprawl is a real risk. A single accidentally committed key can compromise the entire platform.
+Immediate Audit
+Run a full codebase audit for any hardcoded secrets: search for patterns like 'sk_', 'SG.', 'AC', 'AIza', 'AAAA' in all .ts and .tsx files.
+Ensure ALL secrets exist only in .env.local (dev) and Firebase environment config (production). No exceptions.
+Verify .env.local is listed in .gitignore and has never been committed: git log --all --full-history -- .env.local
+Secret Scanning Setup
+Install git-secrets: brew install git-secrets (Mac) or apt-get install git-secrets (Linux).
+Run git secrets --install in the project root to add pre-commit hooks.
+Add patterns for all used services:
+git secrets --add 'sk_live_[a-zA-Z0-9]+'   # Stripe live key
+git secrets --add 'SG\.[a-zA-Z0-9]+'       # SendGrid
+git secrets --add 'AC[a-zA-Z0-9]{32}'       # Twilio Account SID
+Enable GitHub secret scanning in repository Settings > Security > Secret scanning.
+Key Rotation Schedule
+Add the following to your project board as recurring quarterly tasks:
+Q2 2026: Rotate Algolia API keys, OpenWeatherMap key
+Q3 2026: Rotate SendGrid / Postmark keys, Twilio auth tokens
+Q4 2026: Rotate Firebase service account, B2B partner API keys
+Ongoing: Rotate any key within 24 hours of a team member departure
+✅  SUCCESS: git secrets blocks any commit containing a secret pattern. GitHub secret scanning alerts within minutes of any accidental exposure.
+S5 — Firestore Security Rules Audit (Waiver & Booking Documents)
+PROBLEM: Signed legal waiver PDFs stored in Firebase Storage may be readable by anyone who knows or guesses a file path. A misconfigured read rule exposes sensitive PII and legally-binding documents.
+Firestore Rules — /firestore.rules
+Review the allBookings collection rules. Confirm that read access requires: auth.uid == resource.data.userId OR custom claim role == 'admin'. No wildcard reads permitted.
+Confirm the applications collection has: allow read: if request.auth.token.role == 'admin'; — no traveler-level read.
+match /allBookings/{bookingId} {
+  allow read: if request.auth != null &&
+    (request.auth.uid == resource.data.userId ||
+     request.auth.token.role == 'admin');
+  allow write: if request.auth != null;
+}
+Firebase Storage Rules — /storage.rules
+Add an explicit rule for the waivers/ path to restrict read access:
+match /waivers/{waiverDoc} {
+  allow read: if request.auth != null &&
+    (request.auth.uid == resource.metadata.userId ||
+     request.auth.token.role == 'admin');
+  allow write: if false; // Only server-side Admin SDK writes
+}
+Set userId as custom metadata when pdf-generator.ts uploads the waiver via Admin SDK.
+Run the Firebase Rules Playground in the Firebase Console to test read attempts with non-owner UIDs — confirm they are denied.
+✅  SUCCESS: Firebase Rules Playground confirms non-owners and unauthenticated requests cannot read any waiver document or booking record they do not own.
+PART B — UX Enhancements
+Apply all 4 UX improvements below. Each enhancement references specific components in the Vualiku XP codebase and benchmarks against world-class travel platforms.
+U1 — Transparent Dynamic Pricing Explainer in BookingDrawer
+INSPIRATION: Airbnb's price breakdown surfaces every fee and reason before checkout. Booking.com shows 'Only 2 rooms left at this price.' Users who understand why they're paying a price convert at significantly higher rates.
+PROBLEM: The dynamic pricing engine in calculateDynamicPrice.ts applies multipliers for season, demand, group size, and timing — but this logic is invisible to the user. Price changes feel arbitrary and cause checkout abandonment.
+Implementation Instructions — BookingDrawer.tsx
+Modify calculateDynamicPrice.ts to return not just a final price but a breakdown object:
+type PriceBreakdown = {
+  basePrice: number;
+  finalPrice: number;
+  modifiers: Array<{ label: string; emoji: string; delta: number; type: 'increase' | 'discount' }>;
+};
+Populate modifiers with human-readable entries. Examples: { label: 'Peak Season (Jun-Sep)', emoji: '☀️', delta: +15, type: 'increase' }, { label: 'Group of 6', emoji: '👥', delta: -10, type: 'discount' }, { label: 'Early Bird (32 days)', emoji: '🐦', delta: -5, type: 'discount' }.
+In BookingDrawer.tsx, render the breakdown below the price display. Show each modifier as a small pill/badge: green background for discounts, amber for increases.
+Add a subtle animated reveal using Framer Motion (already installed) — stagger each modifier pill in with a 0.08s delay for a satisfying cascade effect.
+Include a total savings line if net modifiers are negative: e.g., 'You're saving FJD 24 with your group discount 🎉'.
+On mobile, collapse modifiers behind a 'See price breakdown' tap — expand inline, do not open a new modal.
+✅  SUCCESS: A user selecting 6 people in July sees clear modifier pills showing +15% peak season and
+     -10% group discount before confirming. No pricing confusion at checkout.
+U2 — Visual Step Tracker in Multi-Step Booking Flow
+INSPIRATION: Booking.com's 3-step checkout breadcrumb reduces abandonment by eliminating 'how much more of this?' anxiety. Apple checkout uses a minimal step indicator that feels effortless. The key insight: showing users the end is near increases completion rate.
+PROBLEM: The /booking route takes users through multiple steps with no indication of progress. Users don't know if they're halfway through or just beginning, which increases drop-off.
+Implementation Instructions
+Create a new component at /src/components/booking/BookingStepTracker.tsx.
+Define 4 steps: 1) Select Experience, 2) Review Details, 3) Sign Waiver, 4) Confirm & Pay.
+Accept a currentStep: number prop (1-4) and render a horizontal stepper with: completed steps shown as a filled green circle with a checkmark, the active step shown as a pulsing ocean-blue circle (use the existing pulse keyframe in globals.css), and future steps shown as grey outlines.
+Connect steps with a horizontal line that fills with the brand green colour as steps are completed — animate the fill using a CSS width transition over 400ms.
+Place the component at the top of the booking page layout, below the header, above the booking form content.
+Pass the currentStep value from booking page state — update it when the user moves between form stages.
+On mobile (below 640px breakpoint), collapse step labels and show only the circles + connecting line to conserve space. Show the active step label below the tracker: 'Step 2 of 4: Review Details'.
+✅  SUCCESS: Users can see at a glance that they are on Step 2 of 4 with a visual indicator.
+     The completed step shows a green checkmark. Framer Motion animates the transition between steps.
+U3 — Real-Time Social Proof in BookingDrawer
+INSPIRATION: Viator shows '47 booked this week.' Booking.com uses 'In high demand — only 1 left.' These signals are not gimmicks: they reduce decision paralysis by validating that others have made the same choice. The key is that they must be real, not fabricated.
+PROBLEM: The BookingDrawer presents pricing and availability with no social context. Users considering an activity have no signal that others are actively booking it, which slows conversion.
+Implementation Instructions
+Add a Firestore query in BookingDrawer.tsx (or a custom hook useActivitySocialProof.ts) that fetches the count of bookings for the current activity in the last 7 days from the allBookings collection where status == 'confirmed'.
+Query pattern:
+const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+const q = query(
+  collection(db, 'allBookings'),
+  where('activityId', '==', activityId),
+  where('status', '==', 'confirmed'),
+  where('createdAt', '>=', sevenDaysAgo)
+);
+Display the result as a non-intrusive badge near the top of the BookingDrawer. Example: '🔥 12 people booked this in the last 7 days'. Only show if count >= 3 to avoid showing zero or low numbers.
+Additionally, query current slot capacity: if the selected timeslot is more than 70% full, show a scarcity signal: '⚡ Only 3 spots left at this time'.
+Use Firestore onSnapshot for real-time updates — the count should refresh without a page reload if someone books during the session.
+Style as a subtle pill above the pricing area — vualiku-green background, white text, small font (text-xs). Do NOT use alarming red or aggressive language. Keep the eco-tourism brand tone: warm, informative, not pushy.
+✅  SUCCESS: When a user opens the BookingDrawer for a popular activity, they see a green pill
+     showing real booking activity. Scarcity alerts appear only when genuinely warranted.
+U4 (orig. U5) — Context-Aware TravelAssistant
+INSPIRATION: Intercom's Fin AI opens with context: 'I see you're looking at the Pro plan — want help comparing it?' Klarna's assistant knows your order number before you ask. These aren't magic tricks — they're just passing page context into the prompt. The result feels like a knowledgeable guide, not a generic chatbot.
+PROBLEM: The TravelAssistant AI chatbot is accessible from every page but opens with a generic greeting regardless of where the user is or what they're looking at. A user mid-booking on the Drawa Eco Retreat page gets the same opening message as someone browsing the homepage.
+Implementation Instructions
+Create a React context or Zustand slice called assistantContext that stores: { currentPage: string, operatorName: string | null, activityName: string | null, bookingStep: number | null }.
+Update assistantContext values in each major page/component: on /explore and /directory pages set currentPage = 'explore', on individual operator pages set operatorName = operator.name, inside BookingDrawer set activityName and bookingStep.
+In TravelAssistant.tsx, when the chat panel opens, read the current assistantContext and construct a dynamic system prompt for the /api/ai/chat Genkit endpoint:
+const systemContext = assistantContext.operatorName
+  ? `The user is viewing ${assistantContext.operatorName}. Greet them with awareness of this operator`
+  : assistantContext.bookingStep
+  ? `The user is on booking step ${assistantContext.bookingStep}. Offer relevant help for this stage`
+  : `The user is on the ${assistantContext.currentPage} page`;
+Pass this systemContext as the system parameter in the Genkit AI call within /api/ai/chat.ts.
+Change the assistant's opening message to be context-driven. Examples: On an operator page: 'Hi! I see you're exploring Drawa Eco Retreat — I can help you pick the right tour or answer questions about the experience 🌿'. On booking step 2: 'You're almost there! Need help reviewing your booking details or understanding what's included?'. On the homepage: 'Bula! 👋 Looking for an adventure in Vanua Levu? I can help you find the perfect eco-experience.'
+Ensure the context is passed to the API on chat open, not on every message — it sets the session tone only.
+✅  SUCCESS: Opening the TravelAssistant from the Drawa Eco Retreat page shows an operator-aware
+     greeting. Opening it mid-booking shows a step-aware message. The homepage shows a Bula welcome.
+Delivery Checklist
+Use this table to track completion of all 9 improvements:
+ID
+Improvement
+Key File(s)
+Status
+S1
+Rate Limiting
+/src/lib/ratelimit.ts, /src/middleware.ts
+☐  Not Started
+S2
+Webhook Signatures
+/api/checkout/webhook.ts, Twilio routes
+☐  Not Started
+S3
+Admin Role Guard
+/src/lib/auth/requireAdmin.ts
+☐  Not Started
+S4
+API Key Hygiene
+.gitignore, .env.local, git secrets
+☐  Not Started
+S5
+Firestore Rules Audit
+/firestore.rules, /storage.rules
+☐  Not Started
+U1
+Pricing Explainer
+calculateDynamicPrice.ts, BookingDrawer.tsx
+☐  Not Started
+U2
+Step Tracker
+/src/components/booking/BookingStepTracker.tsx
+☐  Not Started
+U3
+Social Proof
+useActivitySocialProof.ts, BookingDrawer.tsx
+☐  Not Started
+U4
+Contextual AI
+TravelAssistant.tsx, /api/ai/chat.ts
+☐  Not Started
+📌  NOTE ON WESTPAC / WINDCAVE: The booking checkout flow (BookingDrawer.tsx → /api/checkout/*)
+     will be revisited once the Westpac bank consultation is complete. A separate integration prompt
+     will be prepared to replace the Stripe session creation with Windcave's hosted payment page.
+— End of Mega Prompt —
+Vualiku XP  ·  Meridian Solutions PTE LTD  ·  Antigravity AI
