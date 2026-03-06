@@ -9,8 +9,10 @@ import { ShieldCheck, Loader2, ArrowRight } from 'lucide-react';
 // Define the list of authorised admin emails here
 const ADMIN_EMAILS = [
     'admin@vualiku.xp',
-    // Add authorised Google account emails here:
-    // 'your.email@gmail.com',
+    'ligarius22@gmail.com',
+    'dbucks3671@gmail.com',
+    'navareafarm@gmail.com',
+    'bulutani@yahoo.com',
 ];
 
 export default function LoginPage() {
