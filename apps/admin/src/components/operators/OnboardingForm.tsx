@@ -34,6 +34,7 @@ export function OperatorOnboarding({ initialData, onSuccess }: OnboardingFormPro
     const prevStep = () => setStep(s => Math.max(s - 1, 1));
 
     const handleSubmit = async () => {
+        console.log("handleSubmit fired", formData);
         setIsSubmitting(true);
         try {
             const dataToSave = {
@@ -50,7 +51,7 @@ export function OperatorOnboarding({ initialData, onSuccess }: OnboardingFormPro
             }
             onSuccess?.();
         } catch (error) {
-            console.error('Failed to save operator:', error);
+            console.error("Submit error:", error);
         } finally {
             setIsSubmitting(false);
         }
@@ -232,7 +233,7 @@ export function OperatorOnboarding({ initialData, onSuccess }: OnboardingFormPro
                     </Button>
                 )}
                 <Button
-                    onClick={step === 4 ? () => { } : nextStep}
+                    onClick={step === 4 ? handleSubmit : nextStep}
                     className={cn(
                         "h-14 font-bold tracking-widest uppercase flex items-center justify-center gap-2 transition-all",
                         step === 4 ? "flex-1 bg-green-500 text-slate-950 hover:bg-green-600 shadow-[0_0_20px_rgba(34,197,94,0.3)]" : "flex-1 bg-primary text-slate-950 hover:bg-primary/90"
