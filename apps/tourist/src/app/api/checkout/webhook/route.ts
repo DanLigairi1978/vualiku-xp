@@ -5,6 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPaymentProvider } from '@/lib/payments/provider';
 import { adminDb } from '@vualiku/shared/server';
+import { FieldValue } from 'firebase-admin/firestore';
 
 export async function POST(request: NextRequest) {
     try {
@@ -17,6 +18,8 @@ export async function POST(request: NextRequest) {
                 console.log(`[webhook] Payment completed for booking: ${event.bookingId}`);
 
                 const bookingRef = adminDb.collection('allBookings').doc(event.bookingId);
+                const bookingDoc = await bookingRef.get();
+
                 await bookingRef.update({
                     paymentStatus: 'paid',
                     paymentSessionId: event.sessionId,
@@ -24,6 +27,25 @@ export async function POST(request: NextRequest) {
                     amountPaid: event.amountPaid / 100,
                     paidAt: new Date().toISOString(),
                 });
+
+                if (bookingDoc.exists) {
+                    const bookingData = bookingDoc.data();
+                    if (bookingData?.promoCode && bookingData.promoCode !== 'none') {
+                        try {
+                            // Find the promo code and increment usage
+                            const promosSnapshot = await adminDb.collection('promos').where('code', '==', bookingData.promoCode).limit(1).get();
+                            if (!promosSnapshot.empty) {
+                                const promoDoc = promosSnapshot.docs[0];
+                                await promoDoc.ref.update({
+                                    usageCount: FieldValue.increment(1) // Assuming import from firebase-admin is present
+                                });
+                                console.log(`[webhook] Incremented usage for promo code: ${bookingData.promoCode}`);
+                            }
+                        } catch (err) {
+                            console.error(`[webhook] Failed to increment promo usage for ${bookingData.promoCode}:`, err);
+                        }
+                    }
+                }
 
                 // In production, you would trigger a confirmation email here
                 // await fetch(`${request.nextUrl.origin}/api/email/send-confirmation`, {

@@ -10,7 +10,8 @@ import { tourCompanies, TourCompany, masterEvents, MasterEvent, standardSlots, p
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { checkForScheduleConflict } from '@/lib/booking-utils';
 import { format, parseISO, addDays } from 'date-fns';
-import { Shield, MapPin, Calendar as CalendarIcon, Clock, ChevronRight, Trash2, ShoppingBasket, MessageCircle } from 'lucide-react';
+import { Shield, MapPin, Calendar as CalendarIcon, Clock, ChevronRight, Trash2, ShoppingBasket, MessageCircle, Ticket, CheckCircle } from 'lucide-react';
+import { useFeatureFlags } from '@/context/FeatureFlagsContext';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,7 +46,7 @@ function BookingContent() {
 
   const { user, loading } = useAuth();
   const [isAuthModalOpen, setAuthModalOpen] = useState(false);
-  const { items, addItem, removeItem, origin, setOrigin } = useBasket();
+  const { items, addItem, removeItem, origin, setOrigin, appliedPromo, setAppliedPromo } = useBasket();
   const { toast } = useToast();
 
   const [bookingDate, setBookingDate] = useState<string>('');
@@ -59,6 +60,11 @@ function BookingContent() {
   const [phone, setPhone] = useState('');
   const [whatsappPhone, setWhatsappPhone] = useState('');
   const [whatsappOptIn, setWhatsappOptIn] = useState(false);
+  const { features } = useFeatureFlags();
+
+  // Promo Code State
+  const [promoInput, setPromoInput] = useState('');
+  const [isValidatingPromo, setIsValidatingPromo] = useState(false);
 
   // Auto-fill from Auth if available
   useEffect(() => {
@@ -177,7 +183,65 @@ function BookingContent() {
   // Array of dates currently booked in the Basket
   const bookedDates = items.map(trip => parseISO(trip.date));
 
-  const basketTotal = items.reduce((sum, trip) => sum + trip.totalPrice, 0);
+  const basketTotalDisplay = items.reduce((sum, trip) => sum + trip.totalPrice, 0);
+
+  const finalTotal = React.useMemo(() => {
+    if (!appliedPromo) return basketTotalDisplay;
+    if (appliedPromo.discountType === 'percentage') {
+      return Math.max(0, basketTotalDisplay - (basketTotalDisplay * (appliedPromo.discountValue / 100)));
+    } else {
+      return Math.max(0, basketTotalDisplay - appliedPromo.discountValue);
+    }
+  }, [basketTotalDisplay, appliedPromo]);
+
+  const handleApplyPromo = async () => {
+    if (!promoInput.trim()) return;
+    setIsValidatingPromo(true);
+    try {
+      const promosRef = collection(db, 'promos');
+      const q = query(promosRef, where('code', '==', promoInput.trim().toUpperCase()));
+      const snap = await getDocs(q);
+
+      if (snap.empty) {
+        toast({ title: 'Invalid Code', description: 'This promo code does not exist.', variant: 'destructive' });
+        return;
+      }
+
+      const promoDoc = snap.docs[0];
+      const promoData = promoDoc.data();
+
+      if (!promoData.active) {
+        toast({ title: 'Inactive Code', description: 'This promo code is currently disabled.', variant: 'destructive' });
+        return;
+      }
+
+      if (promoData.maxUses && promoData.currentUses >= promoData.maxUses) {
+        toast({ title: 'Code Exhausted', description: 'This promo code has reached its maximum usage limit.', variant: 'destructive' });
+        return;
+      }
+
+      if (promoData.expiryDate) {
+        const expiry = parseISO(promoData.expiryDate);
+        expiry.setHours(23, 59, 59, 999);
+        if (new Date() > expiry) {
+          toast({ title: 'Expired', description: 'This promo code has expired.', variant: 'destructive' });
+          return;
+        }
+      }
+
+      setAppliedPromo({
+        id: promoDoc.id,
+        code: promoData.code,
+        discountType: promoData.discountType,
+        discountValue: promoData.discountValue
+      });
+    } catch (error) {
+      console.error(error);
+      toast({ title: 'Error', description: 'Failed to validate promo code. Please try again.', variant: 'destructive' });
+    } finally {
+      setIsValidatingPromo(false);
+    }
+  };
 
   const handleAddToBasket = () => {
     if (!selectedEvent) return;
@@ -585,10 +649,65 @@ function BookingContent() {
               </div>
             )}
 
+            {/* Promo Code Section */}
+            {items.length > 0 && featureFlags.promos && (
+              <div className="mt-4 pt-4 border-t border-white/10 space-y-3">
+                <Label className="text-xs font-bold text-primary/70 uppercase tracking-widest flex items-center gap-2">
+                  <Ticket className="w-3 h-3" /> Add Promo Code
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={promoInput}
+                    onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
+                    placeholder="e.g. BULA20"
+                    className="bg-black/30 border-white/10 text-white font-mono tracking-widest uppercase h-10 text-sm"
+                    disabled={isValidatingPromo || !!appliedPromo}
+                  />
+                  {!appliedPromo ? (
+                    <Button
+                      onClick={handleApplyPromo}
+                      disabled={!promoInput || isValidatingPromo}
+                      className="bg-white/10 text-white hover:bg-primary hover:text-black h-10 px-4 whitespace-nowrap"
+                    >
+                      {isValidatingPromo ? '...' : 'Apply'}
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="destructive"
+                      onClick={() => { setAppliedPromo(null); setPromoInput(''); }}
+                      className="h-10 px-4 whitespace-nowrap"
+                    >
+                      Remove
+                    </Button>
+                  )}
+                </div>
+                {appliedPromo && (
+                  <p className="text-xs text-green-400 font-bold flex items-center gap-1">
+                    <CheckCircle className="w-3 h-3" /> Code Applied!
+                    {appliedPromo.discountType === 'percentage' ? `${appliedPromo.discountValue}% off` : `$${appliedPromo.discountValue} off`}
+                  </p>
+                )}
+              </div>
+            )}
+
             <div className="mt-auto pt-6 border-t border-white/10 space-y-4">
-              <div className="flex justify-between items-end font-tahoma">
-                <span className="text-foreground/60 text-sm mb-1 uppercase tracking-wider">Total</span>
-                <span className="text-3xl font-bold text-primary">FJD ${basketTotal.toFixed(2)}</span>
+              <div className="flex flex-col gap-1 font-tahoma">
+                <div className="flex justify-between items-end">
+                  <span className="text-foreground/60 text-sm mb-1 uppercase tracking-wider">Subtotal</span>
+                  <span className={cn("text-xl font-bold", appliedPromo ? "text-foreground/50 line-through" : "text-primary")}>FJD ${basketTotalDisplay.toFixed(2)}</span>
+                </div>
+                {appliedPromo && (
+                  <>
+                    <div className="flex justify-between items-end text-green-400">
+                      <span className="text-sm uppercase tracking-wider">Discount ({appliedPromo.code})</span>
+                      <span className="text-lg font-bold">-FJD ${(basketTotalDisplay - finalTotal).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-end pt-2 border-t border-white/10 mt-2">
+                      <span className="text-white text-sm uppercase tracking-wider">Total</span>
+                      <span className="text-3xl font-bold text-primary">FJD ${finalTotal.toFixed(2)}</span>
+                    </div>
+                  </>
+                )}
               </div>
               <Link href="/checkout" className="block">
                 <Button disabled={items.length === 0} className="w-full h-14 text-lg font-bold shadow-xl border border-primary/50 group overflow-hidden bg-white/5 hover:bg-primary/20 transition-all text-white">

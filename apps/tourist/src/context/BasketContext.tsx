@@ -16,6 +16,13 @@ export interface BasketItem {
     imageUrl?: string; // Optional image for the checkout preview
 }
 
+export interface AppliedPromo {
+    id: string;
+    code: string;
+    discountType: 'percentage' | 'flat';
+    discountValue: number;
+}
+
 interface BasketContextType {
     items: BasketItem[];
     addItem: (item: Omit<BasketItem, 'id'>) => void;
@@ -23,6 +30,8 @@ interface BasketContextType {
     clearBasket: () => void;
     origin: string | null;
     setOrigin: (origin: string | null) => void;
+    appliedPromo: AppliedPromo | null;
+    setAppliedPromo: (promo: AppliedPromo | null) => void;
 }
 
 const BasketContext = createContext<BasketContextType | undefined>(undefined);
@@ -30,6 +39,7 @@ const BasketContext = createContext<BasketContextType | undefined>(undefined);
 export function BasketProvider({ children }: { children: React.ReactNode }) {
     const [items, setItems] = useState<BasketItem[]>([]);
     const [origin, setOriginState] = useState<string | null>(null);
+    const [appliedPromo, setAppliedPromoState] = useState<AppliedPromo | null>(null);
 
     // Load basket from local storage on mount
     useEffect(() => {
@@ -42,6 +52,10 @@ export function BasketProvider({ children }: { children: React.ReactNode }) {
             if (storedOrigin) {
                 setOriginState(storedOrigin);
             }
+            const storedPromo = localStorage.getItem('vualiku_promo');
+            if (storedPromo) {
+                setAppliedPromoState(JSON.parse(storedPromo));
+            }
         } catch (e) {
             console.error('Failed to load basket from local storage:', e);
         }
@@ -51,10 +65,15 @@ export function BasketProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         try {
             localStorage.setItem('vualiku_basket', JSON.stringify(items));
+            if (appliedPromo) {
+                localStorage.setItem('vualiku_promo', JSON.stringify(appliedPromo));
+            } else {
+                localStorage.removeItem('vualiku_promo');
+            }
         } catch (e) {
             console.error('Failed to save basket to local storage:', e);
         }
-    }, [items]);
+    }, [items, appliedPromo]);
 
     const setOrigin = (newOrigin: string | null) => {
         setOriginState(newOrigin);
@@ -81,6 +100,10 @@ export function BasketProvider({ children }: { children: React.ReactNode }) {
         setItems([]);
     };
 
+    const setAppliedPromo = (promo: AppliedPromo | null) => {
+        setAppliedPromoState(promo);
+    };
+
     return (
         <BasketContext.Provider
             value={{
@@ -90,6 +113,8 @@ export function BasketProvider({ children }: { children: React.ReactNode }) {
                 clearBasket,
                 origin,
                 setOrigin,
+                appliedPromo,
+                setAppliedPromo,
             }}
         >
             {children}

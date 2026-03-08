@@ -4,7 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import { AdminGuard } from "@/components/auth/AdminGuard";
 import Link from 'next/link';
-import { LayoutDashboard, Users, MessageSquare, PieChart, Settings, LogOut, Package, FileText, DollarSign, Image as ImageIcon, ToggleLeft } from 'lucide-react';
+import { LayoutDashboard, Users, MessageSquare, PieChart, Settings, LogOut, Package, FileText, DollarSign, Image as ImageIcon, ToggleLeft, Ticket } from 'lucide-react';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,6 +21,7 @@ export default function RootLayout({
     const navItems = [
         { label: 'Command Centre', icon: LayoutDashboard, href: '/' },
         { label: 'Platform Controls', icon: ToggleLeft, href: '/platform-controls' },
+        { label: 'Promotions', icon: Ticket, href: '/promotions' },
         { label: 'Operators', icon: Users, href: '/operators' },
         { label: 'Packages', icon: Package, href: '/packages' },
         { label: 'Bookings', icon: PieChart, href: '/bookings' },

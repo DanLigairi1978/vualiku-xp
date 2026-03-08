@@ -24,6 +24,8 @@ export async function POST(request: NextRequest) {
             items, // Array of { eventName, operatorId, pax, date, timeSlot }
             packageId, // Optional package identifier
             packagePax, // Optional participant count for the whole package
+            promoCode,
+            discountAmount
         } = body;
 
         // Basic validation
@@ -166,6 +168,8 @@ export async function POST(request: NextRequest) {
             guestCount,
             paymentStatus: 'pending',
             status: 'unconfirmed',
+            promoCode: promoCode || null,
+            discountAmount: discountAmount || 0,
             createdAt: FieldValue.serverTimestamp(),
             userId: auth.uid,
             userEmail: auth.email,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useBasket } from '@/context/BasketContext';
 import { Button } from '@/components/ui/button';
@@ -13,9 +13,10 @@ import { GoogleMapPreview } from '@/components/booking/google-map-preview';
 import { generatePdfItinerary } from '@/lib/pdf-generator';
 import Image from 'next/image';
 import { BookingStepTracker } from '@/components/booking/BookingStepTracker';
+import { cn } from '@/lib/utils';
 
 export default function CheckoutPage() {
-    const { items, removeItem, origin } = useBasket();
+    const { items, removeItem, origin, appliedPromo } = useBasket();
     const { user } = useAuth();
     const [isProcessing, setIsProcessing] = useState(false);
     const [paymentError, setPaymentError] = useState<string | null>(null);
@@ -24,8 +25,20 @@ export default function CheckoutPage() {
     const originData = pointsOfOrigin.find(p => p.id === origin);
 
     const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
-    const tax = subtotal * 0.15; // 15% VAT placeholder
-    const total = subtotal + tax;
+
+    const discountAmount = React.useMemo(() => {
+        if (!appliedPromo) return 0;
+        if (appliedPromo.discountType === 'percentage') {
+            return subtotal * (appliedPromo.discountValue / 100);
+        }
+        return Math.min(subtotal, appliedPromo.discountValue);
+    }, [subtotal, appliedPromo]);
+
+    const discountedSubtotal = Math.max(0, subtotal - discountAmount);
+
+    // We calculate tax on the discounted subtotal 
+    const tax = discountedSubtotal * 0.15; // 15% VAT placeholder
+    const total = discountedSubtotal + tax;
 
     const handleDownloadDraft = async () => {
         await generatePdfItinerary(sortedItems, originData, total, true);
@@ -57,7 +70,9 @@ export default function CheckoutPage() {
                         date: item.date,
                         timeSlot: item.timeSlot,
                         pax: item.pax
-                    }))
+                    })),
+                    promoCode: appliedPromo?.code || null,
+                    discountAmount: discountAmount
                 }),
             });
 
@@ -231,8 +246,16 @@ export default function CheckoutPage() {
                             <div className="space-y-4 text-sm font-light">
                                 <div className="flex justify-between items-center text-foreground/80">
                                     <span>Adventure Subtotal ({items.length} events)</span>
-                                    <span className="font-bold text-white">${subtotal.toFixed(2)}</span>
+                                    <span className={cn("font-bold text-white", appliedPromo && "line-through text-foreground/40")}>${subtotal.toFixed(2)}</span>
                                 </div>
+
+                                {appliedPromo && (
+                                    <div className="flex justify-between items-center text-green-400">
+                                        <span>Discount ({appliedPromo.code})</span>
+                                        <span className="font-bold">-${discountAmount.toFixed(2)}</span>
+                                    </div>
+                                )}
+
                                 <div className="flex justify-between items-center text-foreground/80">
                                     <span>Taxes & Fees (15%) <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded ml-2">Inc. Insurance</span></span>
                                     <span className="font-bold text-white">${tax.toFixed(2)}</span>

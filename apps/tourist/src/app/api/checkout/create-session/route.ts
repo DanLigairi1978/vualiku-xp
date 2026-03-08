@@ -61,8 +61,11 @@ export async function POST(request: NextRequest) {
         const baseUrl = request.nextUrl.origin;
         const provider = getPaymentProvider();
 
-        // Subtotal (before tax)
-        const subtotal = bookingData.totalFee;
+        // Subtotal (before tax) with discount applied
+        const rawSubtotal = bookingData.totalFee;
+        const discountAmount = bookingData.discountAmount || 0;
+        const subtotal = Math.max(0, rawSubtotal - discountAmount);
+
         const tax = subtotal * 0.15; // 15% VAT placeholder
         const totalAmountCents = Math.round((subtotal + tax) * 100);
 
@@ -92,6 +95,8 @@ export async function POST(request: NextRequest) {
             cancelUrl,
             metadata: {
                 itemCount: String(bookingData.items?.length || 0),
+                promoCode: bookingData.promoCode || 'none',
+                discountAmount: String(discountAmount),
             },
         });
 
