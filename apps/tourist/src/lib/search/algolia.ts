@@ -20,10 +20,12 @@ export interface AlgoliaActivity {
     operatorId: string;
     operatorName: string;
     price: number;
+    basePrice?: number;
     pricingType: 'per_head' | 'per_night';
     durationDesc: string;
     category: string;
     imageUrl?: string;
+    heroImageUrl?: string;
     description?: string;
     rating?: number;
     reviewCount?: number;

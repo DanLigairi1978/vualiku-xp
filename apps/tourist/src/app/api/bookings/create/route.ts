@@ -44,7 +44,22 @@ export async function POST(request: NextRequest) {
 
         if (packageId) {
             // Package Processing
-            const targetPackage = defaultPackages.find(p => p.id === packageId);
+            let targetPackage = defaultPackages.find(p => p.id === packageId);
+
+            // Fetch live package data from Firestore if available
+            const pkgDoc = await db.collection('packages').doc(packageId).get();
+            if (pkgDoc.exists) {
+                const pkgData = pkgDoc.data();
+                if (pkgData?.status === 'active') {
+                    // Merge live data with the default template as fallback
+                    targetPackage = {
+                        ...(targetPackage || {}),
+                        ...pkgData,
+                        id: pkgDoc.id,
+                    } as any;
+                }
+            }
+
             if (!targetPackage || targetPackage.status !== 'active') {
                 return NextResponse.json({ error: `Invalid or inactive package: ${packageId}` }, { status: 400 });
             }
@@ -91,9 +106,24 @@ export async function POST(request: NextRequest) {
                     return NextResponse.json({ error: 'Invalid participant count' }, { status: 400 });
                 }
 
+                // Fetch live pricing from Firestore Operator document
+                const opDoc = await db.collection('operators').doc(item.operatorId).get();
+                let liveBasePrice = masterEvent.price;
+                let livePricingType = masterEvent.pricingType;
+
+                if (opDoc.exists) {
+                    const opData = opDoc.data();
+                    if (opData?.status === 'active' && opData?.basePrice !== undefined) {
+                        liveBasePrice = Number(opData.basePrice);
+                        if (opData.pricingType) {
+                            livePricingType = opData.pricingType;
+                        }
+                    }
+                }
+
                 const pricingResult = calculateDynamicPrice({
-                    basePrice: masterEvent.price,
-                    pricingType: masterEvent.pricingType,
+                    basePrice: liveBasePrice,
+                    pricingType: livePricingType,
                     pax: item.pax,
                     bookingDate: dateObj,
                 });
@@ -118,6 +148,9 @@ export async function POST(request: NextRequest) {
         }
 
         // 3. Write securely to Firestore using Admin SDK
+        const guestCount = isPackage ? packagePax : items.reduce((sum: number, item: any) => sum + item.pax, 0);
+        const basePrice = verifiedActivities[0]?.pricePerPax || 0;
+
         const bookingData = {
             firstName,
             lastName,
@@ -129,6 +162,8 @@ export async function POST(request: NextRequest) {
             packageId: packageId || null,
             packageName,
             totalFee,
+            basePrice,
+            guestCount,
             paymentStatus: 'pending',
             status: 'unconfirmed',
             createdAt: FieldValue.serverTimestamp(),

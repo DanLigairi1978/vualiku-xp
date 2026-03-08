@@ -34,17 +34,20 @@ export function ActivityResults(props: UseHitsProps<AlgoliaActivity>) {
 function ActivityCard({ activity }: { activity: AlgoliaActivity }) {
     const { openDrawer } = useBookingDrawer();
 
+    const imageUrl = activity.heroImageUrl || activity.imageUrl;
+    const price = activity.basePrice ?? activity.price;
+
     return (
         <div className="forest-card flex flex-col group overflow-hidden">
             {/* Image */}
             <div className="relative aspect-[16/10] rounded-2xl overflow-hidden mb-4">
-                {activity.imageUrl ? (
+                {imageUrl ? (
                     <Image
-                        src={activity.imageUrl}
+                        src={imageUrl}
                         alt={activity.name}
                         fill
                         className="object-cover group-hover:scale-110 transition-transform duration-700"
-                        unoptimized
+                        unoptimized={imageUrl.startsWith('http')}
                     />
                 ) : (
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-background flex items-center justify-center">
@@ -98,7 +101,7 @@ function ActivityCard({ activity }: { activity: AlgoliaActivity }) {
             <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/5">
                 <div>
                     <span className="text-xl font-bold text-primary font-tahoma">
-                        ${activity.price}
+                        ${price}
                     </span>
                     <span className="text-[10px] text-foreground/40 italic ml-1">
                         / {activity.pricingType === 'per_head' ? 'person' : 'night'}

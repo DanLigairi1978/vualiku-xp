@@ -4,14 +4,43 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, CalendarDays, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { db } from '@vualiku/shared';
 
 export const metadata = {
     title: 'Seasonal Packages & Multi-Day Tours - Vualiku XP',
     description: 'Explore curated multi-day packages across Fiji\'s northern islands. Discover untouched rainforests, eco-retreats, and cultural immersions.',
 };
 
-export default function PackagesPage() {
-    const activePackages = defaultPackages.filter(p => p.status === 'active');
+export const revalidate = 0; // Force dynamic fetching for live data
+
+export default async function PackagesPage() {
+    let activePackages = defaultPackages.filter(p => p.status === 'active');
+
+    try {
+        const q = query(collection(db, 'packages'), where('status', '==', 'active'));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+            activePackages = querySnapshot.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    title: data.title || '',
+                    description: data.description || '',
+                    durationDays: data.durationDays || 1,
+                    price: data.price || 0,
+                    currency: data.currency || 'FJD',
+                    imageUrl: data.imageUrl || '',
+                    validityStart: data.validityStart || '',
+                    validityEnd: data.validityEnd || '',
+                    itinerary: data.itinerary || [],
+                    status: data.status || 'active'
+                };
+            }) as typeof defaultPackages;
+        }
+    } catch (e) {
+        console.error("Failed to fetch packages from Firestore:", e);
+    }
 
     return (
         <main className="min-h-screen bg-gray-50 pb-24">

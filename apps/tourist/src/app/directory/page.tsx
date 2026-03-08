@@ -3,7 +3,9 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { tourCompanies, type TourCompany, PlaceHolderImages } from '@vualiku/shared';
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { getAdminFirestore } from '@/lib/firebase/admin';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Tour Directory — Verified Partners',
@@ -11,7 +13,25 @@ export const metadata: Metadata = {
     'Browse verified eco-tourism operators in Fiji. Adventure tours, cultural experiences, water sports, and overnight expeditions in Vanua Levu.',
 };
 
-export default function DirectoryPage() {
+export default async function DirectoryPage() {
+  const db = getAdminFirestore();
+  const snapshot = await db.collection('operators')
+    .where('status', '==', 'active')
+    // We can't rely on orderBy createdAt here if an index doesn't exist, so we will order in memory
+    .get();
+
+  let operators = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
+
+  if (operators.length > 0) {
+    operators.sort((a, b) => {
+      const aTime = a.createdAt?.toMillis?.() || 0;
+      const bTime = b.createdAt?.toMillis?.() || 0;
+      return bTime - aTime;
+    });
+  } else {
+    operators = [...tourCompanies];
+  }
+
   return (
     <div className="bg-background min-h-screen text-white pt-32 pb-24 overflow-hidden selection:bg-primary/30">
       {/* Misty Background Layer */}
@@ -43,21 +63,23 @@ export default function DirectoryPage() {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {tourCompanies.map((company: TourCompany, index: number) => {
-            const image = PlaceHolderImages.find((p) => p.id === company.imageId);
+          {operators.map((company: any, index: number) => {
+            const staticImage = company.imageId ? PlaceHolderImages.find((p) => p.id === company.imageId)?.imageUrl : null;
+            const imageUrl = company.heroImageUrl || staticImage || '/images/tours/drawa-forest.jpg';
+
             return (
               <div
-                key={company.name}
+                key={company.id || company.name}
                 className="forest-card group flex flex-col gap-6"
               >
-                <div className="relative aspect-[4/3] rounded-[1.5rem] overflow-hidden">
-                  {image && (
+                <div className="relative aspect-[4/3] rounded-[1.5rem] overflow-hidden bg-slate-900 border border-slate-800">
+                  {imageUrl && (
                     <Image
-                      src={image.imageUrl}
+                      src={imageUrl}
                       alt={company.name}
                       fill
                       className="object-cover group-hover:scale-110 transition-transform duration-700"
-                      unoptimized
+                      unoptimized={imageUrl.startsWith('http')}
                     />
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
@@ -83,7 +105,7 @@ export default function DirectoryPage() {
 
                   <div className="pt-6 mt-auto">
                     <Button asChild className="btn-forest w-full h-12 text-sm">
-                      <Link href={company.bookingLink || '#'}>
+                      <Link href={company.bookingLink || `/directory`}>
                         BOOK TOUR
                       </Link>
                     </Button>

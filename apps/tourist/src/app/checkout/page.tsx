@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import { useBasket } from '@/context/BasketContext';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -15,6 +16,7 @@ import { BookingStepTracker } from '@/components/booking/BookingStepTracker';
 
 export default function CheckoutPage() {
     const { items, removeItem, origin } = useBasket();
+    const { user } = useAuth();
     const [isProcessing, setIsProcessing] = useState(false);
     const [paymentError, setPaymentError] = useState<string | null>(null);
 
@@ -44,10 +46,10 @@ export default function CheckoutPage() {
                 headers: { 'Content-Type': 'application/json' },
                 signal: controller.signal,
                 body: JSON.stringify({
-                    firstName: 'Guest', // TODO: User real form data / profile
-                    lastName: 'User',
-                    email: 'guest@vualiku-xp.com',
-                    phone: '',
+                    firstName: user?.displayName?.split(' ')[0] || user?.email?.split('@')[0] || 'Guest',
+                    lastName: user?.displayName?.split(' ').slice(1).join(' ') || 'User',
+                    email: user?.email || 'guest@vualiku-xp.com',
+                    phone: user?.phoneNumber || '',
                     origin: origin || '',
                     items: items.map(item => ({
                         eventName: item.eventName,
@@ -71,8 +73,8 @@ export default function CheckoutPage() {
                 signal: controller.signal,
                 body: JSON.stringify({
                     bookingId: bookingData.bookingId,
-                    customerEmail: 'guest@vualiku-xp.com', // TODO: Get from auth context
-                    customerName: 'Guest',
+                    customerEmail: user?.email || 'guest@vualiku-xp.com',
+                    customerName: user?.displayName || user?.email?.split('@')[0] || 'Guest',
                 }),
             });
 

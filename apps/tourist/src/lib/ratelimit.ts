@@ -16,7 +16,7 @@ export const ratelimit = new Ratelimit({
 });
 
 // Helper for specific routes
-export const getRateLimiter = (requests: number, window: string = "60 s") => {
+export const getRateLimiter = (requests: number, window = "60 s" as any) => {
     return new Ratelimit({
         redis: redis,
         limiter: Ratelimit.slidingWindow(requests, window),

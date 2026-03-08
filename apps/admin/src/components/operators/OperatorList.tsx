@@ -19,8 +19,118 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { OperatorOnboarding } from './OnboardingForm';
 import { useOperators, Operator } from '@/lib/hooks/useOperators';
 
+function OperatorRow({
+    op,
+    onEdit,
+    editOperator
+}: {
+    op: Operator;
+    onEdit: (op: Operator) => void;
+    editOperator: (id: string, data: Partial<Operator>) => Promise<void>;
+}) {
+    const [price, setPrice] = useState(op.basePrice?.toString() || '0');
+    const [isUpdating, setIsUpdating] = useState(false);
+
+    const handlePriceBlur = async () => {
+        const numPrice = parseFloat(price);
+        if (isNaN(numPrice) || numPrice === op.basePrice) {
+            setPrice(op.basePrice?.toString() || '0');
+            return;
+        }
+        setIsUpdating(true);
+        try {
+            await editOperator(op.id, { basePrice: numPrice });
+        } catch (error) {
+            console.error(error);
+            setPrice(op.basePrice?.toString() || '0');
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
+    const handleToggleStatus = async () => {
+        setIsUpdating(true);
+        try {
+            const newStatus = op.status === 'active' ? 'inactive' : 'active';
+            await editOperator(op.id, { status: newStatus });
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
+    return (
+        <TableRow className="border-slate-800 hover:bg-slate-800/30 transition-colors group">
+            <TableCell className="py-6">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center text-slate-500 font-bold overflow-hidden border border-slate-700 group-hover:border-primary/50 transition-colors shrink-0">
+                        {op.heroImageUrl ? (
+                            /* eslint-disable-next-line @next/next/no-img-element */
+                            <img src={op.heroImageUrl} alt={op.name} className="w-full h-full object-cover" />
+                        ) : (
+                            op.name.charAt(0)
+                        )}
+                    </div>
+                    <div>
+                        <p className="font-bold text-slate-200 group-hover:text-primary transition-colors">{op.name}</p>
+                        <p className="text-xs text-slate-500 truncate max-w-[300px]">{op.description}</p>
+                    </div>
+                </div>
+            </TableCell>
+            <TableCell>
+                <div className="flex items-center gap-2">
+                    <Badge variant="outline" className={cn(
+                        "uppercase text-[9px] px-2 py-0.5",
+                        op.status === 'active' ? "bg-green-500/10 text-green-400 border-green-500/20" :
+                            op.status === 'pending' ? "bg-amber-500/10 text-amber-400 border-amber-500/20" :
+                                "bg-slate-500/10 text-slate-400 border-slate-500/20"
+                    )}>{op.status}</Badge>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleToggleStatus}
+                        disabled={isUpdating}
+                        className="h-6 text-[10px] uppercase tracking-wider text-slate-400 hover:text-white px-2"
+                    >
+                        {op.status === 'active' ? 'Deactivate' : 'Activate'}
+                    </Button>
+                </div>
+            </TableCell>
+            <TableCell>
+                <div className="flex items-center gap-2 max-w-[120px]">
+                    <span className="text-slate-400 text-xs">$</span>
+                    <input
+                        type="number"
+                        className="bg-slate-950 border border-slate-800 rounded px-2 py-1 text-sm w-full text-slate-200 focus:border-primary/50 focus:outline-none"
+                        value={price}
+                        onChange={e => setPrice(e.target.value)}
+                        onBlur={handlePriceBlur}
+                        disabled={isUpdating}
+                    />
+                </div>
+            </TableCell>
+            <TableCell>
+                <span className="text-xs text-slate-400 font-medium">{op.capacity || 0} GUESTS</span>
+            </TableCell>
+            <TableCell>
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onEdit(op)}
+                        className="h-8 w-8 text-slate-500 hover:text-primary hover:bg-primary/10"
+                    >
+                        <Edit2 className="w-4 h-4" />
+                    </Button>
+                </div>
+            </TableCell>
+        </TableRow>
+    );
+}
+
 export function OperatorList() {
-    const { operators, loading, removeOperator } = useOperators();
+    const { operators, loading, removeOperator, editOperator } = useOperators();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingOperator, setEditingOperator] = useState<Operator | null>(null);
 
@@ -65,6 +175,7 @@ export function OperatorList() {
                         <TableRow className="border-slate-800 hover:bg-transparent">
                             <TableHead className="text-slate-500 font-bold uppercase tracking-wider text-[10px]">Operator Name</TableHead>
                             <TableHead className="text-slate-500 font-bold uppercase tracking-wider text-[10px]">Status</TableHead>
+                            <TableHead className="text-slate-500 font-bold uppercase tracking-wider text-[10px]">Price</TableHead>
                             <TableHead className="text-slate-500 font-bold uppercase tracking-wider text-[10px]">Capacity</TableHead>
                             <TableHead className="text-slate-500 font-bold uppercase tracking-wider text-[10px]">Actions</TableHead>
                         </TableRow>
@@ -72,59 +183,23 @@ export function OperatorList() {
                     <TableBody>
                         {loading ? (
                             <TableRow>
-                                <TableCell colSpan={4} className="h-24 text-center text-slate-500 font-bold uppercase tracking-widest text-[10px]">
+                                <TableCell colSpan={5} className="h-24 text-center text-slate-500 font-bold uppercase tracking-widest text-[10px]">
                                     Retrieving encrypted manifests...
                                 </TableCell>
                             </TableRow>
                         ) : operators.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={4} className="h-24 text-center text-slate-500 font-bold uppercase tracking-widest text-[10px]">
+                                <TableCell colSpan={5} className="h-24 text-center text-slate-500 font-bold uppercase tracking-widest text-[10px]">
                                     No designated operators found.
                                 </TableCell>
                             </TableRow>
                         ) : operators.map((op) => (
-                            <TableRow key={op.id} className="border-slate-800 hover:bg-slate-800/30 transition-colors group">
-                                <TableCell className="py-6">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center text-slate-500 font-bold overflow-hidden border border-slate-700 group-hover:border-primary/50 transition-colors">
-                                            {op.name.charAt(0)}
-                                        </div>
-                                        <div>
-                                            <p className="font-bold text-slate-200 group-hover:text-primary transition-colors">{op.name}</p>
-                                            <p className="text-xs text-slate-500 truncate max-w-[300px]">{op.description}</p>
-                                        </div>
-                                    </div>
-                                </TableCell>
-                                <TableCell>
-                                    <Badge variant="outline" className={cn(
-                                        "uppercase text-[9px] px-2 py-0.5",
-                                        op.status === 'active' ? "bg-green-500/10 text-green-400 border-green-500/20" : "bg-slate-500/10 text-slate-400 border-slate-500/20"
-                                    )}>{op.status}</Badge>
-                                </TableCell>
-                                <TableCell>
-                                    <span className="text-xs text-slate-400 font-medium">{op.capacity || 0} GUESTS</span>
-                                </TableCell>
-                                <TableCell>
-                                    <div className="flex items-center gap-2">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => handleEdit(op)}
-                                            className="h-8 w-8 text-slate-500 hover:text-primary hover:bg-primary/10"
-                                        >
-                                            <Edit2 className="w-4 h-4" />
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => removeOperator(op.id)}
-                                            className="h-8 w-8 text-slate-500 hover:text-red-400 hover:bg-red-400/10"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
-                                    </div>
-                                </TableCell>
-                            </TableRow>
+                            <OperatorRow
+                                key={op.id}
+                                op={op}
+                                onEdit={handleEdit}
+                                editOperator={editOperator}
+                            />
                         ))}
                     </TableBody>
                 </Table>

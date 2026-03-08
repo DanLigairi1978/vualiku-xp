@@ -38,10 +38,24 @@ export function useBookings(filters?: { status?: string; operator?: string; date
         }
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
-            const bookingsData = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            })) as Booking[];
+            const bookingsData = snapshot.docs.map(doc => {
+                const data = doc.data() as any;
+                return {
+                    id: doc.id,
+                    tourName: data.tourName || data.packageName || data.items?.[0]?.eventName || 'Unknown Tour',
+                    operator: data.operator || data.operatorId || 'Unknown Operator',
+                    participants: data.participants || data.guestCount || 0,
+                    totalAmount: data.totalAmount || data.totalFee || data.totalAmountPaid || 0,
+                    currency: data.currency || 'FJD',
+                    status: (data.status === 'paid' || data.paymentStatus === 'paid') ? 'paid' : (data.paymentStatus || data.status || 'pending'),
+                    timestamp: data.timestamp || data.createdAt,
+                    customerName: data.customerName || `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'Guest',
+                    customerEmail: data.customerEmail || data.email || data.userEmail || '',
+                    customerPhone: data.customerPhone || data.phone || '',
+                    tourDate: data.tourDate || data.bookingDate,
+                    ...data
+                };
+            }) as Booking[];
             setBookings(bookingsData);
             setLoading(false);
         }, (error) => {

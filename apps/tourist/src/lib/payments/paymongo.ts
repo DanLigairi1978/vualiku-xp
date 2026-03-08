@@ -9,7 +9,7 @@ import type {
     WebhookEvent,
     RefundInput,
     RefundResult,
-} from './types';
+} from '@vualiku/shared';
 
 const PAYMONGO_SECRET_KEY = process.env.PAYMONGO_SECRET_KEY || '';
 

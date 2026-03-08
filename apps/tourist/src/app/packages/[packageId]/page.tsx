@@ -115,20 +115,15 @@ export default async function PackageDetailPage({ params }: { params: Promise<{ 
                                                                     <h3 className="text-xl font-bold text-secondary-900 mb-2">
                                                                         {item.customName || eventData.name}
                                                                     </h3>
-                                                                    {eventData.location && (
-                                                                        <div className="flex items-center text-sm text-gray-500 mb-3">
-                                                                            <MapPin className="w-4 h-4 mr-1 text-primary" />
-                                                                            {eventData.location.name}
-                                                                        </div>
-                                                                    )}
+                                                                    {/* Location removed as it is not on MasterEvent */}
                                                                     <p className="text-gray-600 mb-4 line-clamp-2">
-                                                                        {item.customDescription || eventData.shortDescription}
+                                                                        {item.customDescription || `${eventData.category || ''} Activity`}
                                                                     </p>
 
                                                                     <div className="flex items-center gap-4 text-sm font-medium text-gray-700">
                                                                         <div className="flex items-center bg-gray-100 px-3 py-1 rounded-md">
                                                                             <Clock className="w-4 h-4 mr-1.5 text-gray-500" />
-                                                                            {eventData.duration} mins
+                                                                            {eventData.durationDesc}
                                                                         </div>
                                                                     </div>
                                                                 </CardContent>

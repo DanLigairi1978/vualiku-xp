@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
                 name: bookingData.isPackage ? bookingData.packageName : "Vualiku XP Custom Itinerary",
                 description: bookingData.isPackage ? "Package Journey" : `${bookingData.items.length} Activities`,
                 quantity: 1,
-                unitPrice: totalAmountCents, // the format expected by Stripe/Paydock via adapter
+                unitPrice: totalAmountCents, // the format expected by Windcave/Paydock via adapter
                 currency: 'FJD' as const,
             }
         ];
