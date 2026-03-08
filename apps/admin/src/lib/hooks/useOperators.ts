@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { collection, onSnapshot, query, addDoc, updateDoc, doc, deleteDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '@vualiku/shared';
+import { collection, onSnapshot, query, addDoc, updateDoc, doc, deleteDoc, serverTimestamp, setDoc, getDocs } from 'firebase/firestore';
+import { db, tourCompanies } from '@vualiku/shared';
 
 export interface Operator {
     id: string;
@@ -23,6 +23,7 @@ export interface Operator {
     updatedAt?: any;
     authorisedBy?: string;
     authorisedAt?: any;
+    migratedFromHardcode?: boolean;
 }
 
 export function useOperators() {
@@ -87,5 +88,56 @@ export function useOperators() {
         return await deleteDoc(doc(db, 'operators', id));
     };
 
-    return { operators, loading, addOperator, editOperator, removeOperator };
+    /**
+     * Migrate all hardcoded tourCompanies into Firestore.
+     * Skips any that already exist (name match, case-insensitive).
+     * Returns { migrated: number, skipped: number, total: number }.
+     */
+    const migrateFromHardcode = async (
+        onProgress?: (current: number, total: number, name: string, action: 'migrated' | 'skipped') => void
+    ) => {
+        // Get existing names for de-duplication
+        const existingSnap = await getDocs(collection(db, 'operators'));
+        const existingNames = new Set(
+            existingSnap.docs.map(d => (d.data().name || '').toLowerCase())
+        );
+
+        let migrated = 0;
+        let skipped = 0;
+        const total = tourCompanies.length;
+
+        for (let i = 0; i < tourCompanies.length; i++) {
+            const op = tourCompanies[i];
+
+            if (existingNames.has(op.name.toLowerCase())) {
+                skipped++;
+                onProgress?.(i + 1, total, op.name, 'skipped');
+                continue;
+            }
+
+            await setDoc(doc(db, 'operators', op.id), {
+                name: op.name,
+                description: op.description,
+                location: 'Vanua Levu, Fiji',
+                heroImageUrl: '',
+                basePrice: 0,
+                capacity: 10,
+                status: 'active',
+                category: 'eco',
+                activities: [],
+                contactEmail: '',
+                phone: '',
+                createdAt: serverTimestamp(),
+                migratedFromHardcode: true,
+            });
+
+            migrated++;
+            onProgress?.(i + 1, total, op.name, 'migrated');
+        }
+
+        return { migrated, skipped, total };
+    };
+
+    return { operators, loading, addOperator, editOperator, removeOperator, migrateFromHardcode };
 }
+
