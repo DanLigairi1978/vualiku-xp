@@ -14,23 +14,29 @@ export const metadata: Metadata = {
 };
 
 export default async function DirectoryPage() {
+  // 1. Fetch live operators from Firestore
   const db = getAdminFirestore();
-  const snapshot = await db.collection('operators')
-    .where('status', '==', 'active')
-    // We can't rely on orderBy createdAt here if an index doesn't exist, so we will order in memory
-    .get();
-
-  let operators = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
-
-  if (operators.length > 0) {
-    operators.sort((a, b) => {
+  let firestoreOperators: any[] = [];
+  try {
+    const snapshot = await db.collection('operators')
+      .where('status', '==', 'active')
+      .get();
+    firestoreOperators = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    firestoreOperators.sort((a, b) => {
       const aTime = a.createdAt?.toMillis?.() || 0;
       const bTime = b.createdAt?.toMillis?.() || 0;
       return bTime - aTime;
     });
-  } else {
-    operators = [...tourCompanies];
+  } catch (error) {
+    console.error('Failed to fetch Firestore operators:', error);
   }
+
+  // 2. Merge with hardcoded tourCompanies — de-duplicate by name, Firestore wins
+  const firestoreNames = new Set(firestoreOperators.map((op: any) => op.name?.toLowerCase()));
+  const legacyOperators = tourCompanies.filter(
+    (tc) => !firestoreNames.has(tc.name?.toLowerCase())
+  );
+  const operators = [...firestoreOperators, ...legacyOperators];
 
   return (
     <div className="bg-background min-h-screen text-white pt-32 pb-24 overflow-hidden selection:bg-primary/30">
