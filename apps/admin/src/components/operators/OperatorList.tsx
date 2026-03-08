@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db, tourCompanies } from '@vualiku/shared';
+import { OperatorAvatar } from '@/components/ui/OperatorAvatar';
 import { cn } from '@/lib/utils';
 import {
     Table,
@@ -64,14 +65,7 @@ function OperatorRow({
         <TableRow className="border-slate-800 hover:bg-slate-800/30 transition-colors group">
             <TableCell className="py-6">
                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center text-slate-500 font-bold overflow-hidden border border-slate-700 group-hover:border-primary/50 transition-colors shrink-0">
-                        {op.heroImageUrl ? (
-                            /* eslint-disable-next-line @next/next/no-img-element */
-                            <img src={op.heroImageUrl} alt={op.name} className="w-full h-full object-cover" />
-                        ) : (
-                            op.name.charAt(0)
-                        )}
-                    </div>
+                    <OperatorAvatar name={op.name} imageUrl={op.heroImageUrl} size="md" className="shrink-0 group-hover:border-primary/50 transition-colors" />
                     <div>
                         <p className="font-bold text-slate-200 group-hover:text-primary transition-colors">{op.name}</p>
                         <p className="text-xs text-slate-500 truncate max-w-[300px]">{op.description}</p>

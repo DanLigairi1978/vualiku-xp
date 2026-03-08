@@ -11,7 +11,9 @@
     "build:tourist": "npm run build -w apps/tourist",
     "build:admin": "npm run build -w apps/admin",
     "lint": "npm run lint -ws",
-    "typecheck": "npm run typecheck -ws"
+    "typecheck": "npm run typecheck -ws",
+    "migrate:operators": "npx ts-node scripts/migrate-operators.ts",
+    "migrate:images": "npx ts-node scripts/migrate-operator-images.ts"
   },
   "devDependencies": {
     "turbo": "^2.0.0"
