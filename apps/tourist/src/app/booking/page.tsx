@@ -6,7 +6,8 @@ import { useAuth } from '@/context/AuthContext';
 import { AuthModal } from '@/components/auth/auth-modal';
 import { useBasket } from '@/context/BasketContext';
 import { useToast } from '@/hooks/use-toast';
-import { tourCompanies, TourCompany, masterEvents, MasterEvent, standardSlots, pointsOfOrigin, TimeSlotId, PlaceHolderImages } from '@vualiku/shared';
+import { tourCompanies, TourCompany, masterEvents, MasterEvent, standardSlots, pointsOfOrigin, TimeSlotId, PlaceHolderImages, db } from '@vualiku/shared';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { checkForScheduleConflict } from '@/lib/booking-utils';
 import { format, parseISO, addDays } from 'date-fns';
 import { Shield, MapPin, Calendar as CalendarIcon, Clock, ChevronRight, Trash2, ShoppingBasket, MessageCircle } from 'lucide-react';
@@ -29,6 +30,7 @@ function BookingContent() {
   const searchParams = useSearchParams();
   const operatorParam = searchParams.get('operator');
   const [operator, setOperator] = useState<TourCompany | null>(null);
+  const [firestoreOperators, setFirestoreOperators] = useState<TourCompany[]>([]);
 
   const { user, loading } = useAuth();
   const [isAuthModalOpen, setAuthModalOpen] = useState(false);
@@ -62,15 +64,42 @@ function BookingContent() {
     }
   }, [user]);
 
+  // Fetch active operators from Firestore
+  useEffect(() => {
+    const fetchOps = async () => {
+      try {
+        const q = query(collection(db, 'operators'), where('status', '==', 'active'));
+        const snap = await getDocs(q);
+        const ops: TourCompany[] = snap.docs.map(d => {
+          const data = d.data();
+          return {
+            id: d.id,
+            name: data.name || '',
+            description: data.description || '',
+            imageId: data.heroImageUrl || d.id,
+            bookingLink: `/booking?operator=${d.id}`,
+          };
+        });
+        if (ops.length > 0) setFirestoreOperators(ops);
+      } catch (err) {
+        console.error('Failed to fetch operators from Firestore:', err);
+      }
+    };
+    fetchOps();
+  }, []);
+
+  // Merge: use Firestore operators if available, otherwise hardcoded
+  const allOperators = firestoreOperators.length > 0 ? firestoreOperators : tourCompanies;
+
   useEffect(() => {
     if (!loading && !user) {
       setAuthModalOpen(true);
     }
     if (operatorParam) {
-      const found = tourCompanies.find((c) => c.id === operatorParam);
+      const found = allOperators.find((c) => c.id === operatorParam) || tourCompanies.find((c) => c.id === operatorParam);
       if (found) setOperator(found);
     }
-  }, [loading, user, operatorParam]);
+  }, [loading, user, operatorParam, allOperators]);
 
   if (loading) {
     return (
@@ -237,7 +266,7 @@ function BookingContent() {
                   <SelectValue placeholder="Choose an Operator..." />
                 </SelectTrigger>
                 <SelectContent className="bg-green-950/95 backdrop-blur-2xl border-white/10 text-white rounded-xl shadow-2xl">
-                  {tourCompanies.map((c) => (
+                  {allOperators.map((c) => (
                     <SelectItem key={c.id} value={c.id} className="focus:bg-primary font-medium py-3 cursor-pointer">
                       {c.name}
                     </SelectItem>

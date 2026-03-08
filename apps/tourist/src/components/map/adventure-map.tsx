@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow } from '@vis.gl/react-google-maps';
-import { tourCompanies } from '@vualiku/shared';
+import { tourCompanies, db } from '@vualiku/shared';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
-// Coordinates for communities in Vanua Levu
-const locations: Record<string, { lat: number; lng: number }> = {
+// Hardcoded fallback coordinates
+const fallbackLocations: Record<string, { lat: number; lng: number }> = {
     'Waisali Nature Experience': { lat: -16.6333, lng: 179.2333 },
     'Vorovoro Island': { lat: -16.4833, lng: 179.0333 },
     'Dromuninuku Heritage and Tours': { lat: -16.75, lng: 179.3167 },
@@ -17,11 +18,67 @@ const locations: Record<string, { lat: number; lng: number }> = {
     'Baleyaga Nature': { lat: -16.68, lng: 179.7 },
 };
 
-export default function AdventureMap() {
-    const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
+interface MapOperator {
+    id: string;
+    name: string;
+    description: string;
+    lat: number;
+    lng: number;
+    bookingLink: string;
+}
 
-    // Fallback if the user hasn't added their API key to .env.local yet
+export default function AdventureMap() {
+    const [selectedId, setSelectedId] = useState<string | null>(null);
+    const [operators, setOperators] = useState<MapOperator[]>([]);
+
     const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+
+    useEffect(() => {
+        const fetchOperators = async () => {
+            try {
+                const q = query(collection(db, 'operators'), where('status', '==', 'active'));
+                const snap = await getDocs(q);
+
+                if (snap.docs.length > 0) {
+                    const ops: MapOperator[] = snap.docs.map(d => {
+                        const data = d.data();
+                        // Use Firestore lat/lng if available, then fallback
+                        const fallback = fallbackLocations[data.name];
+                        return {
+                            id: d.id,
+                            name: data.name || d.id,
+                            description: data.description || '',
+                            lat: data.latitude || fallback?.lat || -16.6,
+                            lng: data.longitude || fallback?.lng || 179.3,
+                            bookingLink: `/booking?operator=${d.id}`,
+                        };
+                    });
+                    setOperators(ops);
+                    return;
+                }
+            } catch (err) {
+                console.error('Failed to fetch map operators from Firestore:', err);
+            }
+
+            // Fallback to hardcoded tourCompanies
+            const fallbackOps: MapOperator[] = tourCompanies.map(c => {
+                const coords = fallbackLocations[c.name] || { lat: -16.6, lng: 179.3 };
+                return {
+                    id: c.id,
+                    name: c.name,
+                    description: c.description,
+                    lat: coords.lat,
+                    lng: coords.lng,
+                    bookingLink: c.bookingLink || `/booking?operator=${c.id}`,
+                };
+            });
+            setOperators(fallbackOps);
+        };
+
+        fetchOperators();
+    }, []);
+
+    const selected = operators.find(o => o.id === selectedId);
 
     return (
         <div className="w-full h-[70vh] rounded-[2rem] overflow-hidden border border-primary/20 relative z-10 shadow-2xl">
@@ -34,41 +91,36 @@ export default function AdventureMap() {
                     disableDefaultUI={true}
                     zoomControl={true}
                 >
-                    {tourCompanies.map((company) => {
-                        const coords = locations[company.name];
-                        if (!coords) return null;
+                    {operators.map((op) => (
+                        <AdvancedMarker
+                            key={op.id}
+                            position={{ lat: op.lat, lng: op.lng }}
+                            onClick={() => setSelectedId(op.id)}
+                        >
+                            <Pin
+                                background={'#22c55e'}
+                                borderColor={'#14532d'}
+                                glyphColor={'#ffffff'}
+                            />
+                        </AdvancedMarker>
+                    ))}
 
-                        return (
-                            <AdvancedMarker
-                                key={company.name}
-                                position={coords}
-                                onClick={() => setSelectedCompany(company.name)}
-                            >
-                                <Pin
-                                    background={'#22c55e'}
-                                    borderColor={'#14532d'}
-                                    glyphColor={'#ffffff'}
-                                />
-                            </AdvancedMarker>
-                        );
-                    })}
-
-                    {selectedCompany && (
+                    {selected && (
                         <InfoWindow
-                            position={locations[selectedCompany]}
-                            onCloseClick={() => setSelectedCompany(null)}
+                            position={{ lat: selected.lat, lng: selected.lng }}
+                            onCloseClick={() => setSelectedId(null)}
                             headerContent={
                                 <h3 className="text-sm font-bold text-primary max-w-[150px] truncate pr-2">
-                                    {selectedCompany}
+                                    {selected.name}
                                 </h3>
                             }
                         >
                             <div className="p-1 w-48 font-tahoma text-black">
                                 <p className="text-xs text-black/80 mb-3 leading-snug">
-                                    {tourCompanies.find(c => c.name === selectedCompany)?.description}
+                                    {selected.description}
                                 </p>
                                 <Button asChild className="w-full h-8 text-[10px] bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg shadow-md">
-                                    <Link href={tourCompanies.find(c => c.name === selectedCompany)?.bookingLink || '/booking'}>
+                                    <Link href={selected.bookingLink}>
                                         BOOK TOUR
                                     </Link>
                                 </Button>

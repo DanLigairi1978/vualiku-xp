@@ -1,17 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, Phone, MapPin, Send, Loader2 } from 'lucide-react';
+import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Mail, Phone, MapPin, Send, Loader2, MessageCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import Image from 'next/image';
+import { useSiteContent } from '@/hooks/useSiteContent';
 
 export default function ContactPage() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { global } = useSiteContent();
+  const { contact } = global;
 
   // The deployed Apps Script URL provided by the user
   const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxeaKs9Z9SnkjV_eFC3jA7x5nxhd93ogyrOMurtcIjA144IVlA68p46w2BNz7D4P2NWHw/exec";
@@ -52,6 +54,7 @@ export default function ContactPage() {
       setIsSubmitting(false);
     }
   };
+
   return (
     <div className="relative min-h-screen text-white pt-32 pb-24 overflow-hidden selection:bg-primary/30">
       {/* Misty Background Layer */}
@@ -62,7 +65,7 @@ export default function ContactPage() {
           <CardHeader className="text-center space-y-4 pb-12 border-b border-white/5">
             <CardTitle className="text-5xl md:text-6xl font-bold font-tahoma text-shadow-lg">Get In Touch</CardTitle>
             <CardDescription className="text-xl text-foreground/60 font-light">
-              We'd love to hear from you. Here's how you can reach our team.
+              We&apos;d love to hear from you. Here&apos;s how you can reach our team.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid md:grid-cols-2 gap-12 pt-12">
@@ -74,8 +77,8 @@ export default function ContactPage() {
                 <div className="space-y-1">
                   <h3 className="text-xl font-bold font-tahoma">Email</h3>
                   <p className="text-foreground/60 text-sm leading-relaxed">For general inquiries and booking support.</p>
-                  <a href="mailto:admin@vualikuxp.com" className="block text-lg font-medium text-primary hover:underline underline-offset-4">
-                    admin@vualikuxp.com
+                  <a href={`mailto:${contact.email}`} className="block text-lg font-medium text-primary hover:underline underline-offset-4">
+                    {contact.email}
                   </a>
                 </div>
               </div>
@@ -87,11 +90,26 @@ export default function ContactPage() {
                 <div className="space-y-1">
                   <h3 className="text-xl font-bold font-tahoma">Phone</h3>
                   <p className="text-foreground/60 text-sm leading-relaxed">Available during local business hours (FJT).</p>
-                  <a href="tel:+6797630785" className="block text-lg font-medium text-primary hover:underline underline-offset-4">
-                    (679) 7630785
+                  <a href={`tel:${contact.phone.replace(/[^+\d]/g, '')}`} className="block text-lg font-medium text-primary hover:underline underline-offset-4">
+                    {contact.phone}
                   </a>
                 </div>
               </div>
+
+              {contact.whatsapp && (
+                <div className="flex items-start gap-6 group">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-green-500/10 text-green-400 border border-green-500/20 group-hover:bg-green-500 group-hover:text-background transition-all duration-300">
+                    <MessageCircle className="h-6 w-6" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-xl font-bold font-tahoma">WhatsApp</h3>
+                    <p className="text-foreground/60 text-sm leading-relaxed">Chat with us instantly.</p>
+                    <a href={`https://wa.me/${contact.whatsapp.replace(/[^+\d]/g, '')}`} target="_blank" rel="noopener noreferrer" className="block text-lg font-medium text-green-400 hover:underline underline-offset-4">
+                      {contact.whatsapp}
+                    </a>
+                  </div>
+                </div>
+              )}
 
               <div className="flex items-start gap-6 group">
                 <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary border border-primary/20 group-hover:bg-primary group-hover:text-background transition-all duration-300">
@@ -100,7 +118,7 @@ export default function ContactPage() {
                 <div className="space-y-1">
                   <h3 className="text-xl font-bold font-tahoma">Our Headquarters</h3>
                   <p className="text-lg text-foreground/80 leading-relaxed font-light">
-                    Youth Dream Center, Nabalebale, Vanua Levu, Fiji
+                    {contact.address}
                     <br />
                     <span className="text-sm text-foreground/40 italic">(Visits by appointment only)</span>
                   </p>

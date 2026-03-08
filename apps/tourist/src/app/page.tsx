@@ -1,14 +1,14 @@
 'use client';
 
-import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { tourCompanies, type TourCompany, PlaceHolderImages } from '@vualiku/shared';
-import { ArrowRight, Waves, Mountain, Users, Moon, Compass } from 'lucide-react';
+import { Waves, Mountain, Compass, Moon, ArrowRight } from 'lucide-react';
 import { useBookingDrawer } from '@/hooks/use-booking-drawer';
 import { StarRatingDisplay } from '@/components/ui/star-rating';
 import { cn } from '@/lib/utils';
+import { useSiteContent } from '@/hooks/useSiteContent';
 
 // Movement / Mood Options
 const MOODS = [
@@ -20,30 +20,30 @@ const MOODS = [
     icon: Waves,
     image: '/images/snorkeling.png',
     color: 'from-blue-600/20 to-cyan-500/20',
-    borderColor: 'border-cyan-500/30'
+    borderColor: 'border-blue-500/30'
   },
   {
-    id: 'land',
-    title: 'Land',
-    subtitle: 'Trekking & Waterfalls',
-    category: 'Land & Trekking',
+    id: 'mountain',
+    title: 'Mountain',
+    subtitle: 'Trekking & Heights',
+    category: 'Mountain & Trekking',
     icon: Mountain,
-    image: '/images/jungle-trekking.png',
-    color: 'from-emerald-600/20 to-green-500/20',
-    borderColor: 'border-emerald-500/30'
+    image: '/images/mountain-hiking.png',
+    color: 'from-green-600/20 to-emerald-500/20',
+    borderColor: 'border-green-500/30'
   },
   {
     id: 'culture',
     title: 'Culture',
-    subtitle: 'Workshops & Heritage',
-    category: 'Cultural & Workshops',
-    icon: Users,
+    subtitle: 'Heritage & Traditions',
+    category: 'Cultural & Heritage',
+    icon: Compass,
     image: '/images/culture-tour.png',
-    color: 'from-orange-600/20 to-red-500/20',
-    borderColor: 'border-orange-500/30'
+    color: 'from-amber-600/20 to-orange-500/20',
+    borderColor: 'border-amber-500/30'
   },
   {
-    id: 'stay',
+    id: 'retreat',
     title: 'Stay',
     subtitle: 'Overnights & Glamping',
     category: 'Stay & Overnight',
@@ -57,11 +57,23 @@ const MOODS = [
 export default function Home() {
   const heroImage = PlaceHolderImages.find((p) => p.id === 'hero-fiji');
   const { openDrawer } = useBookingDrawer();
+  const { homepage, global, loading } = useSiteContent();
 
   return (
     <div className="flex flex-col bg-background min-h-screen text-white overflow-hidden selection:bg-primary/30">
       {/* Misty Background Layer */}
       <div className="fixed inset-0 misty-bg opacity-80 pointer-events-none" />
+
+      {/* Announcement Banner */}
+      {homepage.announcement.enabled && homepage.announcement.text && (
+        <div className="relative z-50 py-2.5 px-4 text-center text-sm font-bold" style={{ backgroundColor: homepage.announcement.color || '#2D6A4F' }}>
+          {homepage.announcement.link ? (
+            <Link href={homepage.announcement.link} className="text-white hover:underline">{homepage.announcement.text}</Link>
+          ) : (
+            <span className="text-white">{homepage.announcement.text}</span>
+          )}
+        </div>
+      )}
 
       {/* Hero Section */}
       <section className="relative min-h-[90vh] flex flex-col items-center justify-center pt-32 pb-20 px-4">
@@ -70,7 +82,7 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/40 to-background z-10" />
           {heroImage && (
             <Image
-              src={heroImage.imageUrl}
+              src={homepage.hero.heroImageUrl || heroImage.imageUrl}
               alt="Jungle Forest"
               fill
               className="object-cover opacity-20 mix-blend-overlay scale-105 animate-slow-zoom"
@@ -89,19 +101,25 @@ export default function Home() {
             </div>
 
             <h1 className="text-5xl md:text-9xl font-bold tracking-tighter leading-[0.9] text-shadow-2xl font-tahoma uppercase italic">
-              Experience <br />
-              <span className="text-primary not-italic">Raw Fiji</span>
+              {homepage.hero.headline.includes(' ') ? (
+                <>
+                  {homepage.hero.headline.split(' ').slice(0, -1).join(' ')} <br />
+                  <span className="text-primary not-italic">{homepage.hero.headline.split(' ').slice(-1)[0]}</span>
+                </>
+              ) : (
+                <span className="text-primary not-italic">{homepage.hero.headline}</span>
+              )}
             </h1>
 
             <p className="max-w-2xl mx-auto text-lg md:text-2xl text-foreground/60 font-light leading-relaxed font-tahoma">
-              Step off the beaten path into the mist. Discover authentic, community-led adventures across the hidden north.
+              {homepage.hero.subheadline}
             </p>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-6 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
             <Button asChild size="lg" className="btn-forest h-16 px-12 text-lg shadow-[0_0_30px_rgba(34,197,94,0.3)] hover:shadow-[0_0_40px_rgba(34,197,94,0.4)] transition-all">
-              <Link href="/explore">
-                START YOUR STORY
+              <Link href={homepage.hero.ctaLink || '/explore'}>
+                {homepage.hero.ctaText || 'START YOUR STORY'}
               </Link>
             </Button>
             <Button asChild variant="ghost" className="h-16 px-12 text-lg border border-white/10 hover:bg-white/5 transition-all">
@@ -115,6 +133,30 @@ export default function Home() {
         {/* Decorative Floating Elements */}
         <div className="absolute top-[20%] right-[10%] w-64 h-64 bg-primary/5 rounded-full blur-[120px] animate-pulse" />
         <div className="absolute bottom-[20%] left-[10%] w-96 h-96 bg-accent/5 rounded-full blur-[150px] animate-pulse delay-700" />
+      </section>
+
+      {/* Stats Bar */}
+      <section className="relative z-10 py-12 border-y border-white/5 bg-white/[0.02]">
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div>
+              <p className="text-4xl md:text-5xl font-bold text-primary font-tahoma">{homepage.stats.tours}+</p>
+              <p className="text-sm text-foreground/50 mt-1 font-light">Unique Tours</p>
+            </div>
+            <div>
+              <p className="text-4xl md:text-5xl font-bold text-primary font-tahoma">{homepage.stats.operators}</p>
+              <p className="text-sm text-foreground/50 mt-1 font-light">Local Operators</p>
+            </div>
+            <div>
+              <p className="text-4xl md:text-5xl font-bold text-primary font-tahoma">{homepage.stats.happyGuests}+</p>
+              <p className="text-sm text-foreground/50 mt-1 font-light">Happy Guests</p>
+            </div>
+            <div>
+              <p className="text-4xl md:text-5xl font-bold text-primary font-tahoma">{homepage.stats.yearsExperience}</p>
+              <p className="text-sm text-foreground/50 mt-1 font-light">Years Experience</p>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Discover by Mood Section */}
@@ -164,6 +206,30 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Testimonials Section */}
+      {homepage.testimonials.length > 0 && (
+        <section className="py-24 relative z-10">
+          <div className="container mx-auto px-6">
+            <div className="text-center mb-16 space-y-4">
+              <h2 className="text-4xl md:text-6xl font-bold font-tahoma tracking-tighter uppercase italic">What Guests <span className="text-primary not-italic">Say</span></h2>
+              <p className="text-foreground/50 text-lg font-light max-w-xl mx-auto italic">Real stories from real adventurers</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              {homepage.testimonials.slice(0, 3).map((t, i) => (
+                <div key={i} className="forest-card p-8 space-y-4">
+                  <StarRatingDisplay value={t.rating} />
+                  <p className="text-foreground/80 font-light italic leading-relaxed">&ldquo;{t.quote}&rdquo;</p>
+                  <div className="pt-4 border-t border-white/10">
+                    <p className="font-bold text-white">{t.name}</p>
+                    <p className="text-xs text-foreground/50">{t.location}{t.date ? ` · ${t.date}` : ''}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Featured Operator Banner */}
       <section className="py-24 relative z-10 bg-primary/5 border-y border-white/5">
         <div className="container mx-auto px-6">
@@ -174,7 +240,7 @@ export default function Home() {
               </div>
               <h2 className="text-4xl md:text-7xl font-bold font-tahoma tracking-tighter leading-none uppercase">Drawa Eco <br /><span className="text-primary italic">Retreat</span></h2>
               <p className="text-xl text-foreground/70 font-light leading-relaxed">
-                Vanua Levu's crown jewel. A community-owned project protecting 10,000 acres of pristine rainforest.
+                Vanua Levu&apos;s crown jewel. A community-owned project protecting 10,000 acres of pristine rainforest.
                 Experience trekking, rafting, and authentic stays like nowhere else on Earth.
               </p>
               <Button

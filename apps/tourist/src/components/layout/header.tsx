@@ -23,16 +23,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useSiteContent } from '@/hooks/useSiteContent';
 
-const navLinks = [
-  { href: '/', label: 'Home' },
-  { href: '/explore', label: 'Explore' },
-  { href: '/packages', label: 'Packages' },
-  { href: '/directory', label: 'Directory' },
-  { href: '/map', label: 'Map' },
-  { href: '/booking', label: 'Booking' },
-  { href: '/about', label: 'About' },
-  { href: '/contact', label: 'Contact' },
+// Hardcoded fallback — used until Firestore loads
+const FALLBACK_NAV = [
+  { href: '/', label: 'Home', visible: true, highlight: false },
+  { href: '/explore', label: 'Explore', visible: true, highlight: false },
+  { href: '/packages', label: 'Packages', visible: true, highlight: false },
+  { href: '/directory', label: 'Directory', visible: true, highlight: false },
+  { href: '/map', label: 'Map', visible: true, highlight: false },
+  { href: '/booking', label: 'Booking', visible: true, highlight: false },
+  { href: '/about', label: 'About', visible: true, highlight: false },
+  { href: '/contact', label: 'Contact', visible: true, highlight: false },
 ];
 
 export default function Header() {
@@ -42,6 +44,13 @@ export default function Header() {
   const auth = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isAuthModalOpen, setAuthModalOpen] = useState(false);
+  const { global } = useSiteContent();
+
+  // Use Firestore nav items (filtered by visible), fall back to hardcoded
+  const navLinks = (global.navigation.items.length > 0
+    ? global.navigation.items
+    : FALLBACK_NAV
+  ).filter(item => item.visible);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -79,6 +88,9 @@ export default function Header() {
               )}
             >
               {link.label}
+              {link.highlight && (
+                <span className="absolute -top-2 -right-3 w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+              )}
               <span className={cn(
                 "absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-[3px] rounded-full bg-primary transition-all duration-300 group-hover:w-full",
                 pathname === link.href && "w-6"
@@ -155,6 +167,7 @@ export default function Header() {
                         )}
                       >
                         {link.label}
+                        {link.highlight && <span className="ml-2 inline-block w-2 h-2 rounded-full bg-amber-400 animate-pulse" />}
                       </Link>
                     ))}
                   </nav>
