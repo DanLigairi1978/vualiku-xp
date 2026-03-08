@@ -15,6 +15,8 @@ import { LocaleProvider } from '@/lib/i18n/locale-provider';
 import { BookingDrawer } from '@/components/booking/BookingDrawer';
 import { StickyBasketBar } from '@/components/booking/StickyBasketBar';
 import { AIProvider } from '@/context/AIContext';
+import { FeatureFlagsProvider } from '@/context/FeatureFlagsContext';
+import { MaintenanceGate } from '@/components/layout/MaintenanceGate';
 
 
 export const metadata: Metadata = {
@@ -91,16 +93,20 @@ export default function RootLayout({
             <AuthProvider>
               <BasketProvider>
                 <AIProvider>
-                  <DynamicBackground />
-                  <div className="relative flex min-h-dvh flex-col">
-                    <Header />
-                    <main className="flex-1">{children}</main>
-                    <Footer />
-                  </div>
-                  <BookingDrawer />
-                  <StickyBasketBar />
-                  <TravelAssistant />
-                  <Toaster />
+                  <FeatureFlagsProvider>
+                    <MaintenanceGate>
+                      <DynamicBackground />
+                      <div className="relative flex min-h-dvh flex-col">
+                        <Header />
+                        <main className="flex-1">{children}</main>
+                        <Footer />
+                      </div>
+                      <BookingDrawer />
+                      <StickyBasketBar />
+                      <TravelAssistant />
+                      <Toaster />
+                    </MaintenanceGate>
+                  </FeatureFlagsProvider>
                 </AIProvider>
               </BasketProvider>
             </AuthProvider>
