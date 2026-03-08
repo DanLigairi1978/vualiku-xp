@@ -1,45 +1,56 @@
 import Link from 'next/link';
-import { defaultPackages } from '@/lib/packages-data';
+import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, CalendarDays, ArrowRight } from 'lucide-react';
-import Image from 'next/image';
-import { collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from '@vualiku/shared';
+import { defaultPackages } from '@/lib/packages-data';
+import { getAdminFirestore } from '@/lib/firebase/admin';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
     title: 'Seasonal Packages & Multi-Day Tours - Vualiku XP',
     description: 'Explore curated multi-day packages across Fiji\'s northern islands. Discover untouched rainforests, eco-retreats, and cultural immersions.',
 };
 
-export const revalidate = 0; // Force dynamic fetching for live data
-
 export default async function PackagesPage() {
-    let activePackages = defaultPackages.filter(p => p.status === 'active');
-
+    // Fetch live packages from Firestore (admin-managed), fallback to hardcoded
+    let activePackages: any[] = [];
     try {
-        const q = query(collection(db, 'packages'), where('status', '==', 'active'));
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-            activePackages = querySnapshot.docs.map(doc => {
+        const db = getAdminFirestore();
+        const snapshot = await db.collection('packages')
+            .where('status', 'in', ['active', 'featured'])
+            .get();
+
+        if (!snapshot.empty) {
+            activePackages = snapshot.docs.map(doc => {
                 const data = doc.data();
                 return {
                     id: doc.id,
-                    title: data.title || '',
-                    description: data.description || '',
-                    durationDays: data.durationDays || 1,
-                    price: data.price || 0,
+                    title: data.name || data.title || '',
+                    description: data.shortDescription || data.description || '',
+                    durationDays: data.durationDays || parseInt(data.duration) || 1,
+                    price: data.pricePerHead || data.price || 0,
                     currency: data.currency || 'FJD',
-                    imageUrl: data.imageUrl || '',
-                    validityStart: data.validityStart || '',
-                    validityEnd: data.validityEnd || '',
-                    itinerary: data.itinerary || [],
-                    status: data.status || 'active'
+                    imageUrl: data.heroImageUrl || data.imageUrl || '/images/tours/drawa-forest.jpg',
+                    duration: data.duration || '',
+                    status: data.status || 'active',
                 };
-            }) as typeof defaultPackages;
+            });
         }
     } catch (e) {
         console.error("Failed to fetch packages from Firestore:", e);
+    }
+
+    // Merge with hardcoded defaults — Firestore wins on duplicates
+    if (activePackages.length > 0) {
+        const firestoreIds = new Set(activePackages.map(p => p.id));
+        const legacyPackages = defaultPackages
+            .filter(p => p.status === 'active' && !firestoreIds.has(p.id))
+            .map(p => ({ ...p }));
+        activePackages = [...activePackages, ...legacyPackages];
+    } else {
+        activePackages = defaultPackages.filter(p => p.status === 'active');
     }
 
     return (
@@ -63,7 +74,7 @@ export default async function PackagesPage() {
             {/* Packages Grid */}
             <section className="container mx-auto px-4 md:px-6 -mt-8">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {activePackages.map((pkg) => (
+                    {activePackages.map((pkg: any) => (
                         <Card key={pkg.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 border-none shadow-md group flex flex-col">
                             <div className="relative h-[250px] md:h-[300px] w-full overflow-hidden shrink-0">
                                 <Image
@@ -72,10 +83,11 @@ export default async function PackagesPage() {
                                     fill
                                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                                     sizes="(max-width: 768px) 100vw, 50vw"
+                                    unoptimized={pkg.imageUrl?.startsWith('http')}
                                 />
                                 <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-primary font-bold px-3 py-1.5 rounded-full text-sm flex items-center shadow-sm">
                                     <CalendarDays className="w-4 h-4 mr-1.5" />
-                                    {pkg.durationDays} Days / {pkg.durationDays - 1} Nights
+                                    {pkg.duration || `${pkg.durationDays} Days`}
                                 </div>
                             </div>
                             <CardContent className="p-6 md:p-8 flex flex-col flex-1">
@@ -93,7 +105,7 @@ export default async function PackagesPage() {
                                             Starting From
                                         </p>
                                         <div className="flex items-baseline">
-                                            <span className="text-sm font-semibold text-gray-500 mr-1">{pkg.currency}</span>
+                                            <span className="text-sm font-semibold text-gray-500 mr-1">{pkg.currency || 'FJD'}</span>
                                             <span className="text-3xl font-bold text-secondary-900">${pkg.price}</span>
                                             <span className="text-sm text-gray-500 ml-1">/ person</span>
                                         </div>
