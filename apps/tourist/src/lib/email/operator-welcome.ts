@@ -1,35 +1,57 @@
 // Operator Welcome Email Template — Vualiku XP
 // Sent when an operator application is approved
-interface WelcomeEmailData {
-    businessName: string;
-    contactName: string;
-    email: string;
-    loginUrl?: string;
+import { adminDb } from '@vualiku/shared/server';
+import { DEFAULT_TEMPLATES, parseTemplateString, TemplateKey, EmailTemplateConfig } from './templates';
+
+export interface WelcomeEmailData {
+  businessName: string;
+  contactName: string;
+  email: string;
+  loginUrl?: string;
 }
 
 /**
  * Get the lazy-initialized Resend client
  */
 function getResendClient() {
-    const RESEND_API_KEY = process.env.RESEND_API_KEY;
-    if (!RESEND_API_KEY) {
-        throw new Error('RESEND_API_KEY is not configured');
-    }
+  const RESEND_API_KEY = process.env.RESEND_API_KEY;
+  if (!RESEND_API_KEY) {
+    throw new Error('RESEND_API_KEY is not configured');
+  }
 
-    // Lazy import to avoid build errors when Resend isn't configured
-    const { Resend } = require('resend');
-    return new Resend(RESEND_API_KEY);
+  // Lazy import to avoid build errors when Resend isn't configured
+  const { Resend } = require('resend');
+  return new Resend(RESEND_API_KEY);
+}
+
+async function getEmailConfig(key: TemplateKey): Promise<EmailTemplateConfig> {
+  try {
+    const docSnap = await adminDb.collection('platformConfig').doc('emailTemplates').get();
+    if (docSnap.exists) {
+      const data = docSnap.data() || {};
+      return data[key] || DEFAULT_TEMPLATES[key];
+    }
+  } catch (err) {
+    console.error(`[email] Failed to fetch email template config for ${key}`, err);
+  }
+  return DEFAULT_TEMPLATES[key];
 }
 
 export async function sendOperatorWelcomeEmail(data: WelcomeEmailData) {
-    const resend = getResendClient();
-    const loginUrl = data.loginUrl || 'https://vualiku-xp.web.app/operator/login';
+  const resend = getResendClient();
+  const loginUrl = data.loginUrl || 'https://vualiku-xp.web.app/operator/login';
 
-    await resend.emails.send({
-        from: 'Vualiku XP <onboarding@resend.dev>',
-        to: data.email,
-        subject: `Welcome to Vualiku XP, ${data.businessName}! 🌿`,
-        html: `
+  const config = await getEmailConfig('operatorWelcome');
+  const vars = {
+    operatorName: data.contactName,
+    businessName: data.businessName
+  };
+
+  await resend.emails.send({
+    from: 'Vualiku XP <onboarding@resend.dev>',
+    to: data.email,
+    subject: parseTemplateString(config.subject, vars),
+    html: `
 <!DOCTYPE html>
 <html>
 <head>
@@ -58,11 +80,12 @@ export async function sendOperatorWelcomeEmail(data: WelcomeEmailData) {
     <div class="header">
       <div class="logo">Vualiku XP</div>
       <div class="badge">🌿 Approved Operator</div>
+      <h2 style="color: #4ade80; font-size: 22px; margin-top: 16px; margin-bottom: 4px;">${parseTemplateString(config.headline, vars)}</h2>
+      <p style="color: #9ca3af; font-size: 14px; margin: 0;">${parseTemplateString(config.subheadline, vars)}</p>
     </div>
     <div class="content">
-      <h1>Bula ${data.contactName}! 🎉</h1>
-      <p>Great news — your operator application for <span class="highlight">${data.businessName}</span> has been <span class="highlight">approved</span>.</p>
-      <p>You're now part of the Vualiku XP eco-tourism network, connecting authentic Fijian experiences with travellers from around the world.</p>
+      <h1>${parseTemplateString(config.greeting, vars)}</h1>
+      <p>${parseTemplateString(config.bodyIntro, vars)}</p>
 
       <div class="steps">
         <div class="step">
@@ -79,18 +102,17 @@ export async function sendOperatorWelcomeEmail(data: WelcomeEmailData) {
         </div>
       </div>
 
-      <a href="${loginUrl}" class="cta">Access Your Dashboard →</a>
+      <a href="${loginUrl}" class="cta">${parseTemplateString(config.callToAction || 'Access Your Dashboard →', vars)}</a>
 
       <p>If you have any questions, reply to this email or reach out to our team. We're here to help you succeed!</p>
       <p style="color: #22c55e; font-weight: 600;">— The Vualiku XP Team</p>
     </div>
     <div class="footer">
-      <p>Vualiku XP — Community-led Eco-Tourism Platform</p>
-      <p>Vanua Levu, Fiji 🇫🇯</p>
+      <p>${parseTemplateString(config.footerText || "Vualiku XP — Community-led Eco-Tourism Platform\\nVanua Levu, Fiji 🇫🇯", vars)}</p>
     </div>
   </div>
 </body>
 </html>
     `.trim(),
-    });
+  });
 }

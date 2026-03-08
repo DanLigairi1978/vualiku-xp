@@ -3,3 +3,5 @@ export * from './lib/tour-companies';
 export * from './lib/booking-data';
 export * from './lib/placeholder-images';
 export * from './lib/firebase/client';
+export * from './types/blog';
+export * from './types/media';

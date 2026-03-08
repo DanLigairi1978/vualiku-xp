@@ -3,6 +3,7 @@
 // All multipliers are configurable; base prices come from MasterEvent data.
 
 import { formatFJD } from '@/lib/currency';
+import { PricingOverride } from '@vualiku/shared';
 
 // ─── Season Config ───────────────────────────────────────────────
 export type Season = 'peak' | 'shoulder' | 'off';
@@ -66,6 +67,7 @@ export interface PricingInput {
     pax: number;
     bookingDate: Date;
     demand?: DemandConfig;
+    overrides?: PricingOverride[];
 }
 
 export interface PricingResult {
@@ -95,7 +97,12 @@ export interface PricingBreakdown {
 }
 
 export function calculateDynamicPrice(input: PricingInput): PricingResult {
-    const { basePrice, pricingType, pax, bookingDate, demand } = input;
+    const { basePrice, pricingType, pax, bookingDate, demand, overrides } = input;
+
+    // Phase 7: Check for date-specific pricing override
+    const isoDate = bookingDate.toISOString().split('T')[0];
+    const override = overrides?.find(o => o.date === isoDate);
+    const effectiveBasePrice = override ? override.price : basePrice;
 
     const season = getSeason(bookingDate);
     const seasonMult = SEASON_MULTIPLIERS[season];
@@ -104,9 +111,9 @@ export function calculateDynamicPrice(input: PricingInput): PricingResult {
     const timingMult = getTimingMultiplier(bookingDate);
 
     const combined = seasonMult * demandMult * groupMult * timingMult;
-    const finalPrice = Math.round(basePrice * combined * 100) / 100;
+    const finalPrice = Math.round(effectiveBasePrice * combined * 100) / 100;
     const totalPrice = pricingType === 'per_head' ? finalPrice * pax : finalPrice;
-    const baseTotal = pricingType === 'per_head' ? basePrice * pax : basePrice;
+    const baseTotal = pricingType === 'per_head' ? effectiveBasePrice * pax : effectiveBasePrice;
     const savings = Math.max(0, baseTotal - totalPrice);
 
     const seasonLabels: Record<Season, string> = {
@@ -178,7 +185,7 @@ export function calculateDynamicPrice(input: PricingInput): PricingResult {
     }
 
     return {
-        basePrice,
+        basePrice: effectiveBasePrice,
         finalPrice,
         totalPrice,
         savings,

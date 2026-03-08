@@ -2,6 +2,8 @@
 // Sends transactional emails via Resend API
 
 import { Resend } from 'resend';
+import { adminDb } from '@vualiku/shared/server';
+import { DEFAULT_TEMPLATES, parseTemplateString, TemplateKey, EmailTemplateConfig } from './templates';
 
 let _resend: Resend | null = null;
 function getResend(): Resend {
@@ -18,6 +20,19 @@ function getResend(): Resend {
 }
 
 const FROM_EMAIL = 'Vualiku XP <bookings@vualiku-xp.com>';
+
+async function getEmailConfig(key: TemplateKey): Promise<EmailTemplateConfig> {
+  try {
+    const docSnap = await adminDb.collection('platformConfig').doc('emailTemplates').get();
+    if (docSnap.exists) {
+      const data = docSnap.data() || {};
+      return data[key] || DEFAULT_TEMPLATES[key];
+    }
+  } catch (err) {
+    console.error(`[email] Failed to fetch email template config for ${key}`, err);
+  }
+  return DEFAULT_TEMPLATES[key];
+}
 
 export interface BookingEmailData {
   customerName: string;
@@ -46,20 +61,27 @@ export async function sendBookingConfirmation(data: BookingEmailData) {
     )
     .join('\n\n');
 
+  const config = await getEmailConfig('bookingConfirmation');
+  const vars = {
+    customerName: data.customerName,
+    eventName: data.events[0]?.name || 'Your Adventure',
+    bookingId: data.bookingId
+  };
+
   const { error } = await getResend().emails.send({
     from: FROM_EMAIL,
     to: data.customerEmail,
-    subject: `🌿 Booking Confirmed — ${data.events[0]?.name || 'Your Adventure'}`,
+    subject: parseTemplateString(config.subject, vars),
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #0a1a0f; color: #e0e0e0; border-radius: 16px; overflow: hidden;">
         <div style="background: linear-gradient(135deg, #1a3a2a 0%, #0d2818 100%); padding: 40px 30px; text-align: center;">
-          <h1 style="color: #4ade80; font-size: 28px; margin: 0 0 8px;">Booking Confirmed ✓</h1>
-          <p style="color: #9ca3af; font-size: 14px; margin: 0;">Vualiku XP — Authentic Fijian Adventures</p>
+          <h1 style="color: #4ade80; font-size: 28px; margin: 0 0 8px;">${parseTemplateString(config.headline, vars)}</h1>
+          <p style="color: #9ca3af; font-size: 14px; margin: 0;">${parseTemplateString(config.subheadline, vars)}</p>
         </div>
 
         <div style="padding: 30px;">
-          <p style="font-size: 16px; margin-bottom: 8px;">Bula, <strong>${data.customerName}</strong>! 🌺</p>
-          <p style="color: #9ca3af; margin-bottom: 24px;">Your adventure has been booked and payment received. Here's your confirmation:</p>
+          <p style="font-size: 16px; margin-bottom: 8px;">${parseTemplateString(config.greeting, vars)}</p>
+          <p style="color: #9ca3af; margin-bottom: 24px; line-height: 1.6;">${parseTemplateString(config.bodyIntro, vars)}</p>
 
           <div style="background: #1a2e1f; border: 1px solid #2d4a35; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
             <p style="color: #4ade80; font-weight: bold; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 12px;">Booking ID: ${data.bookingId}</p>
@@ -79,14 +101,13 @@ export async function sendBookingConfirmation(data: BookingEmailData) {
           ` : ''}
 
           <div style="text-align: center; padding: 20px 0;">
-            <a href="https://vualiku-xp.web.app/checkout" style="background: #4ade80; color: #0a1a0f; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px;">View Your Booking</a>
+            <a href="https://vualiku-xp.web.app/checkout" style="background: #4ade80; color: #0a1a0f; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px;">${config.callToAction || 'View Your Booking'}</a>
           </div>
 
           <hr style="border: none; border-top: 1px solid #2d4a35; margin: 24px 0;" />
 
-          <p style="color: #6b7280; font-size: 12px; text-align: center;">
-            Need help? Reply to this email or WhatsApp us.<br/>
-            Vinaka vakalevu — Vualiku XP Team 🌿
+          <p style="color: #6b7280; font-size: 12px; text-align: center; line-height: 1.6;">
+            ${parseTemplateString(config.footerText || "Vinaka vakalevu — Vualiku XP Team 🌿", vars)}
           </p>
         </div>
       </div>
@@ -108,20 +129,27 @@ export async function sendBookingConfirmation(data: BookingEmailData) {
  * Send 24-hour pre-trip reminder email
  */
 export async function sendTripReminder(data: BookingEmailData & { meetupLocation?: string }) {
+  const config = await getEmailConfig('tripReminder');
+  const vars = {
+    customerName: data.customerName,
+    eventName: data.events[0]?.name || 'Your Adventure',
+    bookingId: data.bookingId
+  };
+
   const { error } = await getResend().emails.send({
     from: FROM_EMAIL,
     to: data.customerEmail,
-    subject: `⏰ Your Adventure is Tomorrow! — ${data.events[0]?.name}`,
+    subject: parseTemplateString(config.subject, vars),
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #0a1a0f; color: #e0e0e0; border-radius: 16px; overflow: hidden;">
         <div style="background: linear-gradient(135deg, #1a3a2a 0%, #0d2818 100%); padding: 40px 30px; text-align: center;">
-          <h1 style="color: #4ade80; font-size: 28px; margin: 0 0 8px;">Tomorrow's the Day! 🎉</h1>
-          <p style="color: #9ca3af; font-size: 14px; margin: 0;">Your Vualiku XP adventure is just 24 hours away</p>
+          <h1 style="color: #4ade80; font-size: 28px; margin: 0 0 8px;">${parseTemplateString(config.headline, vars)}</h1>
+          <p style="color: #9ca3af; font-size: 14px; margin: 0;">${parseTemplateString(config.subheadline, vars)}</p>
         </div>
 
         <div style="padding: 30px;">
-          <p style="font-size: 16px;">Bula, <strong>${data.customerName}</strong>!</p>
-          <p style="color: #9ca3af;">Just a friendly reminder — your adventure is happening tomorrow:</p>
+          <p style="font-size: 16px;">${parseTemplateString(config.greeting, vars)}</p>
+          <p style="color: #9ca3af; line-height: 1.6;">${parseTemplateString(config.bodyIntro, vars)}</p>
 
           <div style="background: #1a2e1f; border: 1px solid #2d4a35; border-radius: 12px; padding: 20px; margin: 20px 0;">
             <p style="color: #4ade80; font-weight: bold; margin: 0 0 8px;">${data.events[0]?.name}</p>
@@ -137,8 +165,8 @@ export async function sendTripReminder(data: BookingEmailData & { meetupLocation
 
           <hr style="border: none; border-top: 1px solid #2d4a35; margin: 24px 0;" />
 
-          <p style="color: #6b7280; font-size: 12px; text-align: center;">
-            Vinaka vakalevu — Vualiku XP Team 🌿
+          <p style="color: #6b7280; font-size: 12px; text-align: center; line-height: 1.6;">
+            ${parseTemplateString(config.footerText || "Vinaka vakalevu — Vualiku XP Team 🌿", vars)}
           </p>
         </div>
       </div>
@@ -168,31 +196,39 @@ export async function sendReviewRequest(data: {
 }) {
   const reviewUrl = `https://vualiku-xp.web.app/review/${data.bookingId}`;
 
+  const config = await getEmailConfig('reviewRequest');
+  const vars = {
+    customerName: data.customerName,
+    eventName: data.eventName,
+    operatorName: data.operatorName,
+    bookingId: data.bookingId
+  };
+
   const { error } = await getResend().emails.send({
     from: FROM_EMAIL,
     to: data.customerEmail,
-    subject: `⭐ How was your adventure? — ${data.eventName}`,
+    subject: parseTemplateString(config.subject, vars),
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #0a1a0f; color: #e0e0e0; border-radius: 16px; overflow: hidden;">
         <div style="background: linear-gradient(135deg, #1a3a2a 0%, #0d2818 100%); padding: 40px 30px; text-align: center;">
-          <h1 style="color: #4ade80; font-size: 28px; margin: 0 0 8px;">How Was Your Adventure?</h1>
-          <p style="color: #9ca3af; font-size: 14px; margin: 0;">Your feedback helps the ${data.operatorName} community</p>
+          <h1 style="color: #4ade80; font-size: 28px; margin: 0 0 8px;">${parseTemplateString(config.headline, vars)}</h1>
+          <p style="color: #9ca3af; font-size: 14px; margin: 0;">${parseTemplateString(config.subheadline, vars)}</p>
         </div>
 
         <div style="padding: 30px;">
-          <p style="font-size: 16px;">Bula, <strong>${data.customerName}</strong>! 🌺</p>
-          <p style="color: #9ca3af;">We hope you had an amazing time on <strong>${data.eventName}</strong> with ${data.operatorName}. Your review helps local operators improve and helps other travellers discover authentic Fijian experiences.</p>
+          <p style="font-size: 16px;">${parseTemplateString(config.greeting, vars)}</p>
+          <p style="color: #9ca3af; line-height: 1.6;">${parseTemplateString(config.bodyIntro, vars)}</p>
 
           <div style="text-align: center; padding: 24px 0;">
-            <a href="${reviewUrl}" style="background: #4ade80; color: #0a1a0f; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">Leave a Review ⭐</a>
+            <a href="${reviewUrl}" style="background: #4ade80; color: #0a1a0f; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">${config.callToAction || 'Leave a Review ⭐'}</a>
           </div>
 
           <p style="color: #6b7280; font-size: 13px; text-align: center;">It only takes 2 minutes and makes a real difference for the local community.</p>
 
           <hr style="border: none; border-top: 1px solid #2d4a35; margin: 24px 0;" />
 
-          <p style="color: #6b7280; font-size: 12px; text-align: center;">
-            Vinaka vakalevu — Vualiku XP Team 🌿
+          <p style="color: #6b7280; font-size: 12px; text-align: center; line-height: 1.6;">
+            ${parseTemplateString(config.footerText || "Vinaka vakalevu — Vualiku XP Team 🌿", vars)}
           </p>
         </div>
       </div>
@@ -220,20 +256,27 @@ export async function sendCancellationEmail(data: {
   eventName: string;
   refundAmount?: number;
 }) {
+  const config = await getEmailConfig('bookingCancellation');
+  const vars = {
+    customerName: data.customerName,
+    eventName: data.eventName,
+    bookingId: data.bookingId
+  };
+
   const { error } = await getResend().emails.send({
     from: FROM_EMAIL,
     to: data.customerEmail,
-    subject: `Booking Cancelled — ${data.eventName}`,
+    subject: parseTemplateString(config.subject, vars),
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #0a1a0f; color: #e0e0e0; border-radius: 16px; overflow: hidden;">
         <div style="background: linear-gradient(135deg, #3a1a1a 0%, #280d0d 100%); padding: 40px 30px; text-align: center;">
-          <h1 style="color: #f87171; font-size: 28px; margin: 0 0 8px;">Booking Cancelled</h1>
-          <p style="color: #9ca3af; font-size: 14px; margin: 0;">We're sorry to see you go</p>
+          <h1 style="color: #f87171; font-size: 28px; margin: 0 0 8px;">${parseTemplateString(config.headline, vars)}</h1>
+          <p style="color: #9ca3af; font-size: 14px; margin: 0;">${parseTemplateString(config.subheadline, vars)}</p>
         </div>
 
         <div style="padding: 30px;">
-          <p style="font-size: 16px;">Bula, <strong>${data.customerName}</strong>,</p>
-          <p style="color: #9ca3af;">Your booking for <strong>${data.eventName}</strong> (ID: ${data.bookingId}) has been cancelled.</p>
+          <p style="font-size: 16px;">${parseTemplateString(config.greeting, vars)}</p>
+          <p style="color: #9ca3af; line-height: 1.6;">${parseTemplateString(config.bodyIntro, vars)}</p>
 
           ${data.refundAmount ? `
           <div style="background: #1a2e1f; border: 1px solid #2d4a35; border-radius: 12px; padding: 20px; text-align: center; margin: 20px 0;">
@@ -244,13 +287,13 @@ export async function sendCancellationEmail(data: {
           ` : ''}
 
           <div style="text-align: center; padding: 20px 0;">
-            <a href="https://vualiku-xp.web.app/directory" style="background: #4ade80; color: #0a1a0f; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px;">Browse More Adventures</a>
+            <a href="https://vualiku-xp.web.app/directory" style="background: #4ade80; color: #0a1a0f; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px;">${config.callToAction || 'Browse More Adventures'}</a>
           </div>
 
           <hr style="border: none; border-top: 1px solid #2d4a35; margin: 24px 0;" />
 
-          <p style="color: #6b7280; font-size: 12px; text-align: center;">
-            Vinaka vakalevu — Vualiku XP Team 🌿
+          <p style="color: #6b7280; font-size: 12px; text-align: center; line-height: 1.6;">
+            ${parseTemplateString(config.footerText || "Vinaka vakalevu — Vualiku XP Team 🌿", vars)}
           </p>
         </div>
       </div>

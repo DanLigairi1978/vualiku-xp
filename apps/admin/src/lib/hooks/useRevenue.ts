@@ -9,9 +9,12 @@ export interface RevenueStats {
     totalRevenue: number;
     pendingRevenue: number;
     guestCount: number;
+    totalBookings: number;
     averageOrderValue: number;
     dailyRevenue: { date: string, amount: number }[];
+    dailyBookings: { date: string, count: number }[];
     operatorBreakdown: { name: string, amount: number, percentage: number }[];
+    revenueByStatus: { name: string, value: number }[];
 }
 
 export function useRevenue() {
@@ -49,11 +52,17 @@ export function useRevenue() {
         let pending = 0;
         let guests = 0;
         const revenueMap: Record<string, number> = {};
+        const bookingsMap: Record<string, number> = {};
         const operatorMap: Record<string, number> = {};
+        const statusMap: Record<string, number> = {
+            paid: 0,
+            pending: 0,
+            cancelled: 0,
+            failed: 0
+        };
 
         bookingsRaw.forEach((b: any) => {
-            const isPaid = b.status === 'paid' || b.paymentStatus === 'paid';
-            const isPending = b.status === 'pending' || b.paymentStatus === 'pending';
+            const status = (b.status === 'paid' || b.paymentStatus === 'paid') ? 'paid' : (b.paymentStatus || b.status || 'pending');
             const amount = b.totalAmount || b.totalFee || b.totalAmountPaid || 0;
             const pax = b.participants || b.guestCount || 0;
             const operator = b.operator || b.operatorId || 'Unknown';
@@ -64,16 +73,24 @@ export function useRevenue() {
                 date = ts.toDate().toISOString().split('T')[0];
             }
 
-            if (isPaid) {
+            // Status tracking
+            if (statusMap.hasOwnProperty(status)) {
+                statusMap[status] += amount;
+            } else {
+                statusMap['pending'] += amount;
+            }
+
+            if (status === 'paid') {
                 total += amount;
                 guests += pax;
 
                 // Daily aggregation
                 revenueMap[date] = (revenueMap[date] || 0) + amount;
+                bookingsMap[date] = (bookingsMap[date] || 0) + 1;
 
                 // Operator aggregation
                 operatorMap[operator] = (operatorMap[operator] || 0) + amount;
-            } else if (isPending) {
+            } else if (status === 'pending') {
                 pending += amount;
             }
         });
@@ -81,7 +98,12 @@ export function useRevenue() {
         const dailyRevenue = Object.entries(revenueMap)
             .map(([date, amount]) => ({ date, amount }))
             .sort((a, b) => a.date.localeCompare(b.date))
-            .slice(-7);
+            .slice(-30);
+
+        const dailyBookings = Object.entries(bookingsMap)
+            .map(([date, count]) => ({ date, count }))
+            .sort((a, b) => a.date.localeCompare(b.date))
+            .slice(-30);
 
         const operatorBreakdown = Object.entries(operatorMap)
             .map(([id, amount]) => ({
@@ -91,13 +113,18 @@ export function useRevenue() {
             }))
             .sort((a, b) => b.amount - a.amount);
 
+        const revenueByStatus = Object.entries(statusMap).map(([name, value]) => ({ name, value }));
+
         return {
             totalRevenue: total,
             pendingRevenue: pending,
             guestCount: guests,
+            totalBookings: bookingsRaw.filter(b => (b.status === 'paid' || b.paymentStatus === 'paid')).length,
             averageOrderValue: bookingsRaw.length > 0 ? total / bookingsRaw.length : 0,
             dailyRevenue,
-            operatorBreakdown
+            dailyBookings,
+            operatorBreakdown,
+            revenueByStatus
         };
     }, [bookingsRaw, operatorsRaw]);
 

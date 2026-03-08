@@ -7,7 +7,7 @@ import { usePricing, PricingConfig, PricingRule } from '@/lib/hooks/usePricing';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { DollarSign, Save, Loader2, ToggleLeft, ToggleRight, Percent, Users, Zap } from 'lucide-react';
+import { DollarSign, Save, Loader2, ToggleLeft, ToggleRight, Percent, Users, Zap, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function PricingPage() {
@@ -158,6 +158,67 @@ export default function PricingPage() {
                                 <Input type="number" step="0.01" className="bg-slate-950 border-slate-800 h-9 w-20 text-right text-sm"
                                     value={rule.multiplier} onChange={e => updateRule(i, { multiplier: parseFloat(e.target.value) || 1 })} />
                                 <span className="text-xs text-slate-500 w-8">{rule.multiplier >= 1 ? `+${Math.round((rule.multiplier - 1) * 100)}%` : `${Math.round((rule.multiplier - 1) * 100)}%`}</span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Operator Pricing Overrides */}
+            <div className="bg-slate-900/30 border border-slate-800 rounded-2xl p-6 space-y-4">
+                <div className="flex items-center gap-2 text-primary font-bold uppercase tracking-tight">
+                    <Zap className="w-5 h-5" />
+                    <h2 className="text-sm">Operator Pricing Overrides</h2>
+                </div>
+                <p className="text-[10px] text-slate-500 uppercase tracking-widest">Set specific prices for holiday dates or peak events</p>
+
+                <div className="space-y-6">
+                    {operators.map(op => (
+                        <div key={op.id} className="border border-slate-800 rounded-xl p-4 bg-slate-950/20 space-y-4">
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm font-bold text-slate-200">{op.name}</span>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                        const date = prompt('Enter date (YYYY-MM-DD):');
+                                        const price = prompt('Enter price (FJD):');
+                                        if (date && price) {
+                                            const newOverrides = [...(op.pricingOverrides || []), { date, price: parseFloat(price) }];
+                                            editOperator(op.id, { pricingOverrides: newOverrides });
+                                        }
+                                    }}
+                                    className="h-8 text-[10px] border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800 uppercase tracking-widest font-bold"
+                                >
+                                    Add Override
+                                </Button>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                {op.pricingOverrides?.map((ov, idx) => (
+                                    <div key={idx} className="flex items-center justify-between bg-slate-900 border border-slate-800 p-2 rounded-lg group">
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] font-mono text-primary font-bold">{ov.date}</span>
+                                            <span className="text-xs font-black text-white">FJD ${ov.price}</span>
+                                        </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => {
+                                                const filtered = op.pricingOverrides?.filter((_, i) => i !== idx);
+                                                editOperator(op.id, { pricingOverrides: filtered });
+                                            }}
+                                            className="h-7 w-7 text-slate-600 hover:text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all"
+                                        >
+                                            <Trash2 className="w-3 h-3" />
+                                        </Button>
+                                    </div>
+                                ))}
+                                {(!op.pricingOverrides || op.pricingOverrides.length === 0) && (
+                                    <div className="col-span-full py-4 text-center border border-dashed border-slate-800 rounded-lg">
+                                        <p className="text-[10px] text-slate-600 uppercase tracking-widest">No overrides active</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ))}

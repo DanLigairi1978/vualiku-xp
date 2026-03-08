@@ -20,10 +20,18 @@ import {
 import { ComposeMessage } from '@/components/communications/ComposeMessage';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import { useEmailTemplates, TemplateKey, EmailTemplateConfig } from '@/lib/hooks/useEmailTemplates';
+import { TemplateEditorDialog } from '@/components/communications/TemplateEditorDialog';
 
 export default function CommunicationsPage() {
-    const { logs, loading, sendMessage } = useCommunications();
+    const { logs, loading: logsLoading, sendMessage } = useCommunications();
+    const { templates, loading: templatesLoading, updateTemplate } = useEmailTemplates();
     const [isComposeOpen, setIsComposeOpen] = useState(false);
+
+    const [editorOpen, setEditorOpen] = useState(false);
+    const [selectedTemplateKey, setSelectedTemplateKey] = useState<TemplateKey | null>(null);
+    const [selectedTemplateName, setSelectedTemplateName] = useState('');
+    const [selectedConfig, setSelectedConfig] = useState<EmailTemplateConfig | null>(null);
 
     const stats = [
         { label: 'Outbound Velocity', value: '1.2k/hr', icon: <Activity className="w-5 h-5" />, trend: '+4%', color: 'text-primary' },
@@ -55,6 +63,17 @@ export default function CommunicationsPage() {
                     </DialogTrigger>
                     <ComposeMessage onSuccess={() => setIsComposeOpen(false)} />
                 </Dialog>
+
+                {selectedTemplateKey && selectedConfig && (
+                    <TemplateEditorDialog
+                        open={editorOpen}
+                        onOpenChange={setEditorOpen}
+                        templateKey={selectedTemplateKey}
+                        templateName={selectedTemplateName}
+                        initialConfig={selectedConfig}
+                        onSave={updateTemplate}
+                    />
+                )}
             </header>
 
             {/* Stats Grid */}
@@ -96,7 +115,7 @@ export default function CommunicationsPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-800/50">
-                                    {loading ? (
+                                    {logsLoading ? (
                                         <tr>
                                             <td colSpan={5} className="px-6 py-12 text-center text-slate-500 font-bold uppercase tracking-widest text-[10px]">
                                                 Synchronizing with Komunike nodes...
@@ -152,11 +171,16 @@ export default function CommunicationsPage() {
                     <h2 className="text-xs font-black text-slate-500 uppercase tracking-[0.2em] px-4">Automated Protocols</h2>
 
                     <div className="bg-slate-900/40 backdrop-blur-md border border-slate-800 p-6 rounded-3xl space-y-6">
-                        {[
-                            { name: 'Booking Confirmation', status: 'Active', color: 'bg-green-400' },
-                            { name: 'Payment Reminder', status: 'Paused', color: 'bg-yellow-400' },
-                            { name: 'Tour Manifest (Op)', status: 'Active', color: 'bg-green-400' },
-                            { name: 'Review Request', status: 'Active', color: 'bg-green-400' },
+                        {templatesLoading ? (
+                            <div className="text-center text-slate-500 font-bold uppercase tracking-widest text-[10px] py-4">
+                                Loading Protocols...
+                            </div>
+                        ) : [
+                            { key: 'bookingConfirmation', name: 'Booking Confirmation', status: 'Active', color: 'bg-green-400' },
+                            { key: 'tripReminder', name: 'Trip Reminder (24h)', status: 'Active', color: 'bg-green-400' },
+                            { key: 'reviewRequest', name: 'Review Request', status: 'Active', color: 'bg-green-400' },
+                            { key: 'bookingCancellation', name: 'Booking Cancellation', status: 'Active', color: 'bg-green-400' },
+                            { key: 'operatorWelcome', name: 'Operator Welcome', status: 'Active', color: 'bg-green-400' },
                         ].map((protocol, i) => (
                             <div key={i} className="flex justify-between items-center group">
                                 <div className="space-y-1">
@@ -166,7 +190,14 @@ export default function CommunicationsPage() {
                                         <span className="text-[9px] font-black uppercase text-slate-600 tracking-widest">{protocol.status}</span>
                                     </div>
                                 </div>
-                                <Button variant="outline" size="sm" className="h-8 border-slate-800 bg-slate-950 text-[9px] font-black uppercase tracking-widest px-3 hover:text-white transition-all">
+                                <Button
+                                    onClick={() => {
+                                        setSelectedTemplateKey(protocol.key as TemplateKey);
+                                        setSelectedTemplateName(protocol.name);
+                                        setSelectedConfig(templates[protocol.key as TemplateKey]);
+                                        setEditorOpen(true);
+                                    }}
+                                    variant="outline" size="sm" className="h-8 border-slate-800 bg-slate-950 text-[9px] font-black uppercase tracking-widest px-3 hover:text-white transition-all">
                                     CONFIGURE
                                 </Button>
                             </div>

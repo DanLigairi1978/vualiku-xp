@@ -82,8 +82,16 @@
       linear-gradient(to bottom, transparent 60%, rgba(0, 0, 0, 0.4) 100%);
   }
 
+  .font-primary {
+    font-family: var(--font-primary, 'Tahoma'), sans-serif;
+  }
+
+  .font-secondary {
+    font-family: var(--font-secondary, 'Inter'), sans-serif;
+  }
+
   .font-tahoma {
-    font-family: 'Tahoma', sans-serif;
+    font-family: var(--font-primary, 'Tahoma'), sans-serif;
   }
 
   .btn-forest {

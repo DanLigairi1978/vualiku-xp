@@ -3,7 +3,8 @@
  * Handles the state machine for conversational bookings
  */
 
-import { masterEvents, standardSlots, tourCompanies } from '@vualiku/shared';
+import { masterEvents, standardSlots, tourCompanies, db } from '@vualiku/shared';
+import { doc, getDoc } from 'firebase/firestore';
 
 export interface BotState {
     step: 'START' | 'SEARCH' | 'DATE' | 'CONFIRM';
@@ -18,12 +19,34 @@ export interface BotState {
 // In-memory state store (for demo purposes, usually Redis/Firestore)
 const sessionStore = new Map<string, BotState>();
 
+async function getWhatsAppConfig() {
+    try {
+        const snap = await getDoc(doc(db, 'platformConfig', 'whatsapp'));
+        if (snap.exists()) {
+            return snap.data();
+        }
+    } catch (e) {
+        console.error("Failed to fetch WhatsApp config:", e);
+    }
+    return null;
+}
+
 export async function handleWhatsAppMessage(from: string, body: string): Promise<string> {
+    const config = await getWhatsAppConfig();
+
+    // Check if bot is active
+    if (config && config.isActive === false) {
+        return ""; // Silently ignore or return specific "Bot Disabled" message if needed
+    }
+
+    const templates = config?.templates || {};
+    const resetCommands = templates.RESET_COMMANDS || ['hi', 'bula', 'reset'];
+
     const text = body.trim().toLowerCase();
     let state = sessionStore.get(from) || { step: 'START', data: {} };
 
     // Reset command
-    if (text === 'reset' || text === 'hi' || text === 'bula') {
+    if (resetCommands.includes(text)) {
         state = { step: 'START', data: {} };
     }
 
@@ -31,11 +54,10 @@ export async function handleWhatsAppMessage(from: string, body: string): Promise
 
     switch (state.step) {
         case 'START':
-            response = "🌿 *Bula from Vualiku XP!*\n" +
-                "I can help you find and book an adventure in Vanua Levu.\n\n" +
-                "Reply with a number to choose an operator:\n" +
-                tourCompanies.map((c, i) => `${i + 1}. ${c.name}`).join('\n') +
-                "\n\nType *'Hi'* to restart anytime.";
+            const startTemplate = templates.START || "🌿 *Bula from Vualiku XP!*\nI can help you find and book an adventure in Vanua Levu.\n\nReply with a number to choose an operator:\n{{operators}}\n\nType *'Hi'* to restart anytime.";
+            const operatorsList = tourCompanies.map((c, i) => `${i + 1}. ${c.name}`).join('\n');
+
+            response = startTemplate.replace('{{operators}}', operatorsList);
             state.step = 'SEARCH';
             break;
 
@@ -46,11 +68,15 @@ export async function handleWhatsAppMessage(from: string, body: string): Promise
                 state.data.operatorId = operator.id;
                 const events = masterEvents.filter(e => e.operatorId === operator.id);
 
-                response = `📍 *${operator.name}*\nExcellent choice! Which activity interests you?\n\n` +
-                    events.map((e, i) => `${i + 1}. ${e.name} (FJD $${e.price})`).join('\n');
+                const searchTemplate = templates.SEARCH || "📍 *{{operatorName}}*\nExcellent choice! Which activity interests you?\n\n{{activities}}";
+                const activitiesList = events.map((e, i) => `${i + 1}. ${e.name} (FJD $${e.price})`).join('\n');
+
+                response = searchTemplate
+                    .replace('{{operatorName}}', operator.name)
+                    .replace('{{activities}}', activitiesList);
                 state.step = 'DATE';
             } else {
-                response = "Sorry, I didn't recognize that number. Please choose an operator (1, 2, etc.):";
+                response = templates.ERROR_STEP || "Sorry, I didn't recognize that selection. Please choose an option by number:";
             }
             break;
 
@@ -60,10 +86,12 @@ export async function handleWhatsAppMessage(from: string, body: string): Promise
 
             if (!isNaN(evIndex) && opEvents[evIndex]) {
                 state.data.eventId = opEvents[evIndex].id;
-                response = `🙌 *${opEvents[evIndex].name}*\nWhen would you like to go?\n\nPlease reply with a date like *YYYY-MM-DD* (e.g., 2024-10-15):`;
+                const dateTemplate = templates.DATE || "🙌 *{{activityName}}*\nWhen would you like to go?\n\nPlease reply with a date like *YYYY-MM-DD* (e.g., 2024-10-15):";
+
+                response = dateTemplate.replace('{{activityName}}', opEvents[evIndex].name);
                 state.step = 'CONFIRM';
             } else {
-                response = "Please select an activity by number:";
+                response = templates.ERROR_STEP || "Please select an activity by number:";
             }
             break;
 
@@ -72,18 +100,18 @@ export async function handleWhatsAppMessage(from: string, body: string): Promise
                 state.data.date = text;
                 const event = masterEvents.find(e => e.id === state.data.eventId);
 
-                response = `✅ *Booking Request Summary*\n\n` +
-                    `📦 Adventure: ${event?.name}\n` +
-                    `📅 Date: ${state.data.date}\n` +
-                    `📍 Location: Vanua Levu\n\n` +
-                    `To finalize this booking and pay securely, please visit our portal:\n` +
-                    `👉 vualiku-xp.web.app/booking?operator=${state.data.operatorId}&event=${state.data.eventId}&date=${state.data.date}\n\n` +
-                    `Vinaka vakalevu! 🌺`;
+                const confirmTemplate = templates.CONFIRM || "✅ *Booking Request Summary*\n\n📦 Adventure: {{activityName}}\n📅 Date: {{date}}\n📍 Location: Vanua Levu\n\nTo finalize this booking and pay securely, please visit our portal:\n👉 {{bookingUrl}}\n\nVinaka vakalevu! 🌺";
+                const bookingUrl = `vualiku-xp.web.app/booking?operator=${state.data.operatorId}&event=${state.data.eventId}&date=${state.data.date}`;
+
+                response = confirmTemplate
+                    .replace('{{activityName}}', event?.name || 'Adventure')
+                    .replace('{{date}}', state.data.date)
+                    .replace('{{bookingUrl}}', bookingUrl);
 
                 // Final state - clear or wait for next Hi
                 state.step = 'START';
             } else {
-                response = "That doesn't look like a valid date. Please use *YYYY-MM-DD* format:";
+                response = templates.ERROR_DATE || "That doesn't look like a valid date. Please use *YYYY-MM-DD* format:";
             }
             break;
     }

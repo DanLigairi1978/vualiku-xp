@@ -4,7 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import { AdminGuard } from "@/components/auth/AdminGuard";
 import Link from 'next/link';
-import { LayoutDashboard, Users, MessageSquare, PieChart, Settings, LogOut, Package, FileText, DollarSign, Image as ImageIcon, ToggleLeft, Ticket } from 'lucide-react';
+import { LayoutDashboard, Users, MessageSquare, PieChart, Settings, LogOut, Package, FileText, DollarSign, Image as ImageIcon, ToggleLeft, Ticket, BookOpen, Palette, Bot } from 'lucide-react';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,8 +26,11 @@ export default function RootLayout({
         { label: 'Packages', icon: Package, href: '/packages' },
         { label: 'Bookings', icon: PieChart, href: '/bookings' },
         { label: 'Content', icon: FileText, href: '/content' },
+        { label: 'Blog', icon: BookOpen, href: '/blog' },
         { label: 'Pricing', icon: DollarSign, href: '/pricing' },
         { label: 'Media', icon: ImageIcon, href: '/media' },
+        { label: 'Branding', icon: Palette, href: '/settings/branding' },
+        { label: 'WhatsApp Bot', icon: Bot, href: '/settings/whatsapp' },
         { label: 'Communications', icon: MessageSquare, href: '/communications' },
         { label: 'Revenue', icon: PieChart, href: '/revenue' },
         { label: 'Settings', icon: Settings, href: '/settings' },

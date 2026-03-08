@@ -1,4 +1,4 @@
-import type {Config} from 'tailwindcss';
+import type { Config } from 'tailwindcss';
 
 export default {
   darkMode: ['class'],
@@ -22,10 +22,10 @@ export default {
         code: ['monospace'],
       },
       colors: {
-        background: 'hsl(var(--background))',
+        background: 'var(--brand-background, hsl(var(--background)))',
         foreground: 'hsl(var(--foreground))',
         card: {
-          DEFAULT: 'hsl(var(--card))',
+          DEFAULT: 'var(--brand-surface, hsl(var(--card)))',
           foreground: 'hsl(var(--card-foreground))',
         },
         popover: {
@@ -33,11 +33,11 @@ export default {
           foreground: 'hsl(var(--popover-foreground))',
         },
         primary: {
-          DEFAULT: 'hsl(var(--primary))',
+          DEFAULT: 'var(--brand-primary, hsl(var(--primary)))',
           foreground: 'hsl(var(--primary-foreground))',
         },
         secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
+          DEFAULT: 'var(--brand-secondary, hsl(var(--secondary)))',
           foreground: 'hsl(var(--secondary-foreground))',
         },
         muted: {
@@ -45,7 +45,7 @@ export default {
           foreground: 'hsl(var(--muted-foreground))',
         },
         accent: {
-          DEFAULT: 'hsl(var(--accent))',
+          DEFAULT: 'var(--brand-accent, hsl(var(--accent)))',
           foreground: 'hsl(var(--accent-foreground))',
         },
         destructive: {

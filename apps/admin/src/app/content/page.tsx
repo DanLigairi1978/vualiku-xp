@@ -32,6 +32,7 @@ const defaultGlobal: GlobalContent = {
             { label: 'Explore', href: '/explore', visible: true, highlight: false },
             { label: 'Packages', href: '/packages', visible: true, highlight: false },
             { label: 'Directory', href: '/directory', visible: true, highlight: false },
+            { label: 'Blog', href: '/blog', visible: true, highlight: false },
             { label: 'About', href: '/about', visible: true, highlight: false },
         ]
     },

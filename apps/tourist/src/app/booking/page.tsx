@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { AuthModal } from '@/components/auth/auth-modal';
@@ -185,7 +185,7 @@ function BookingContent() {
 
   const basketTotalDisplay = items.reduce((sum, trip) => sum + trip.totalPrice, 0);
 
-  const finalTotal = React.useMemo(() => {
+  const finalTotal = useMemo(() => {
     if (!appliedPromo) return basketTotalDisplay;
     if (appliedPromo.discountType === 'percentage') {
       return Math.max(0, basketTotalDisplay - (basketTotalDisplay * (appliedPromo.discountValue / 100)));
@@ -650,7 +650,7 @@ function BookingContent() {
             )}
 
             {/* Promo Code Section */}
-            {items.length > 0 && featureFlags.promos && (
+            {items.length > 0 && features.promo_codes_enabled && (
               <div className="mt-4 pt-4 border-t border-white/10 space-y-3">
                 <Label className="text-xs font-bold text-primary/70 uppercase tracking-widest flex items-center gap-2">
                   <Ticket className="w-3 h-3" /> Add Promo Code

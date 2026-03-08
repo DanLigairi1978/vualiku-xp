@@ -22,6 +22,7 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { calculateDynamicPrice } from '@/lib/pricing/dynamic-pricing';
 import { useActivitySocialProof } from '@/hooks/use-activity-social-proof';
+import { useOperator } from '@/hooks/useOperators';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export function BookingDrawer() {
@@ -37,7 +38,8 @@ export function BookingDrawer() {
     const activity = masterEvents.find(e => e.id === selectedActivityId) ||
         masterEvents.find(e => e.name === selectedActivityId); // Fallback to name search
 
-    const operator = tourCompanies.find(c => c.id === (operatorId || activity?.operatorId));
+    const { operator: liveOperator } = useOperator(operatorId || activity?.operatorId || null);
+    const operator = liveOperator || tourCompanies.find(c => c.id === (operatorId || activity?.operatorId));
 
     useEffect(() => {
         if (isOpen) {
@@ -67,8 +69,8 @@ export function BookingDrawer() {
                 date: format(date, 'yyyy-MM-dd'),
                 timeSlot: 'Standard', // Default slot
                 pax,
-                pricePerPax: activity.price,
-                totalPrice: activity.price * pax,
+                pricePerPax: pricing.finalPrice,
+                totalPrice: pricing.totalPrice,
                 duration: '4 Hours', // Default duration
             });
 
@@ -87,10 +89,11 @@ export function BookingDrawer() {
     };
 
     const pricing = calculateDynamicPrice({
-        basePrice: activity.price,
+        basePrice: liveOperator?.basePrice || activity.price,
         pricingType: 'per_head',
         pax,
         bookingDate: date || new Date(),
+        overrides: liveOperator?.pricingOverrides || [],
     });
 
     const { bookingCount } = useActivitySocialProof(activity.id);

@@ -17,6 +17,7 @@ import { StickyBasketBar } from '@/components/booking/StickyBasketBar';
 import { AIProvider } from '@/context/AIContext';
 import { FeatureFlagsProvider } from '@/context/FeatureFlagsContext';
 import { MaintenanceGate } from '@/components/layout/MaintenanceGate';
+import { BrandingProvider } from '@/context/BrandingContext';
 
 
 export const metadata: Metadata = {
@@ -90,26 +91,28 @@ export default function RootLayout({
       <body className={cn('min-h-screen bg-background font-body antialiased')}>
         <FirebaseClientProvider>
           <LocaleProvider>
-            <AuthProvider>
-              <BasketProvider>
-                <AIProvider>
-                  <FeatureFlagsProvider>
-                    <MaintenanceGate>
-                      <DynamicBackground />
-                      <div className="relative flex min-h-dvh flex-col">
-                        <Header />
-                        <main className="flex-1">{children}</main>
-                        <Footer />
-                      </div>
-                      <BookingDrawer />
-                      <StickyBasketBar />
-                      <TravelAssistant />
-                      <Toaster />
-                    </MaintenanceGate>
-                  </FeatureFlagsProvider>
-                </AIProvider>
-              </BasketProvider>
-            </AuthProvider>
+            <BrandingProvider>
+              <AuthProvider>
+                <BasketProvider>
+                  <AIProvider>
+                    <FeatureFlagsProvider>
+                      <MaintenanceGate>
+                        <DynamicBackground />
+                        <div className="relative flex min-h-dvh flex-col">
+                          <Header />
+                          <main className="flex-1">{children}</main>
+                          <Footer />
+                        </div>
+                        <BookingDrawer />
+                        <StickyBasketBar />
+                        <TravelAssistant />
+                        <Toaster />
+                      </MaintenanceGate>
+                    </FeatureFlagsProvider>
+                  </AIProvider>
+                </BasketProvider>
+              </AuthProvider>
+            </BrandingProvider>
           </LocaleProvider>
         </FirebaseClientProvider>
         {GA_ID && <GoogleAnalytics gaId={GA_ID} />}

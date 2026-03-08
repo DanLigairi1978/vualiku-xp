@@ -10,6 +10,12 @@ export interface LineItem {
     imageUrl?: string;
 }
 
+export interface PricingOverride {
+    date: string;       // ISO date string e.g. '2026-04-01'
+    price: number;      // Override price in FJD (or base currency)
+    reason?: string;
+}
+
 export interface CreateSessionInput {
     items: LineItem[];
     customerEmail: string;

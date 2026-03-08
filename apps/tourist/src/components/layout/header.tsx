@@ -33,6 +33,7 @@ const FALLBACK_NAV = [
   { href: '/directory', label: 'Directory', visible: true, highlight: false },
   { href: '/map', label: 'Map', visible: true, highlight: false },
   { href: '/booking', label: 'Booking', visible: true, highlight: false },
+  { href: '/blog', label: 'Blog', visible: true, highlight: false },
   { href: '/about', label: 'About', visible: true, highlight: false },
   { href: '/contact', label: 'Contact', visible: true, highlight: false },
 ];

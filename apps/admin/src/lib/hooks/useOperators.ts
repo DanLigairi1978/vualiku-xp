@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { collection, onSnapshot, query, addDoc, updateDoc, doc, deleteDoc, serverTimestamp, setDoc, getDocs } from 'firebase/firestore';
-import { db, tourCompanies } from '@vualiku/shared';
+import { db, tourCompanies, PricingOverride } from '@vualiku/shared';
 
 export interface Operator {
     id: string;
@@ -34,6 +34,8 @@ export interface Operator {
     advanceNoticeHours?: number;    // Minimum hours before tour
     latitude?: number;
     longitude?: number;
+    // ——— Pricing Overrides (Phase 7) ———
+    pricingOverrides?: PricingOverride[];
 }
 
 export function useOperators() {
