@@ -32,6 +32,17 @@ function BookingContent() {
   const [operator, setOperator] = useState<TourCompany | null>(null);
   const [firestoreOperators, setFirestoreOperators] = useState<TourCompany[]>([]);
 
+  // Availability rules per operator (keyed by operator id)
+  const [operatorRules, setOperatorRules] = useState<Record<string, {
+    operatingDays?: number[];
+    operatingHoursOpen?: string;
+    operatingHoursClose?: string;
+    minGroupSize?: number;
+    maxGroupSize?: number;
+    advanceNoticeHours?: number;
+    blackoutDates?: string[];
+  }>>({});
+
   const { user, loading } = useAuth();
   const [isAuthModalOpen, setAuthModalOpen] = useState(false);
   const { items, addItem, removeItem, origin, setOrigin } = useBasket();
@@ -64,23 +75,39 @@ function BookingContent() {
     }
   }, [user]);
 
-  // Fetch active operators from Firestore
+  // Fetch active operators from Firestore (with availability rules)
   useEffect(() => {
     const fetchOps = async () => {
       try {
         const q = query(collection(db, 'operators'), where('status', '==', 'active'));
         const snap = await getDocs(q);
-        const ops: TourCompany[] = snap.docs.map(d => {
+        const ops: TourCompany[] = [];
+        const rules: typeof operatorRules = {};
+
+        snap.docs.forEach(d => {
           const data = d.data();
-          return {
+          ops.push({
             id: d.id,
             name: data.name || '',
             description: data.description || '',
             imageId: data.heroImageUrl || d.id,
             bookingLink: `/booking?operator=${d.id}`,
+          });
+          rules[d.id] = {
+            operatingDays: data.operatingDays,
+            operatingHoursOpen: data.operatingHoursOpen,
+            operatingHoursClose: data.operatingHoursClose,
+            minGroupSize: data.minGroupSize,
+            maxGroupSize: data.maxGroupSize,
+            advanceNoticeHours: data.advanceNoticeHours,
+            blackoutDates: data.blackoutDates,
           };
         });
-        if (ops.length > 0) setFirestoreOperators(ops);
+
+        if (ops.length > 0) {
+          setFirestoreOperators(ops);
+          setOperatorRules(rules);
+        }
       } catch (err) {
         console.error('Failed to fetch operators from Firestore:', err);
       }
@@ -167,16 +194,47 @@ function BookingContent() {
       return;
     }
 
-    // C5: Validate pax
-    const safePax = Math.max(1, Math.min(50, Math.floor(pax)));
-    if (isNaN(pax) || pax < 1) {
-      toast({ title: 'Invalid Guest Count', description: 'Please enter at least 1 guest.', variant: 'destructive' });
-      setPax(1);
+    // ——— Phase 6: Operator Availability Rules ———
+    const rules = operator ? operatorRules[operator.id] : undefined;
+    if (rules) {
+      // Operating day check
+      if (rules.operatingDays && rules.operatingDays.length > 0) {
+        const dayOfWeek = parseISO(bookingDate).getDay(); // 0=Sun
+        if (!rules.operatingDays.includes(dayOfWeek)) {
+          const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+          toast({ title: 'Not Operating', description: `${operator?.name || 'This operator'} does not operate on ${dayNames[dayOfWeek]}s.`, variant: 'destructive' });
+          return;
+        }
+      }
+
+      // Blackout date check
+      if (rules.blackoutDates && rules.blackoutDates.includes(bookingDate)) {
+        toast({ title: 'Unavailable Date', description: `${operator?.name || 'This operator'} is not available on ${format(parseISO(bookingDate), 'MMMM d, yyyy')}.`, variant: 'destructive' });
+        return;
+      }
+
+      // Advance notice check
+      if (rules.advanceNoticeHours && rules.advanceNoticeHours > 0) {
+        const bookingDateTime = parseISO(bookingDate).getTime();
+        const minTime = Date.now() + rules.advanceNoticeHours * 60 * 60 * 1000;
+        if (bookingDateTime < minTime) {
+          toast({ title: 'Too Short Notice', description: `${operator?.name || 'This operator'} requires at least ${rules.advanceNoticeHours} hours advance notice.`, variant: 'destructive' });
+          return;
+        }
+      }
+    }
+
+    // C5: Validate pax (use operator rules if available)
+    const minPax = rules?.minGroupSize || 1;
+    const maxPax = rules?.maxGroupSize || 50;
+    if (isNaN(pax) || pax < minPax) {
+      toast({ title: 'Group Too Small', description: `Minimum ${minPax} guest${minPax > 1 ? 's' : ''} per booking for this operator.`, variant: 'destructive' });
+      setPax(minPax);
       return;
     }
-    if (pax > 50) {
-      toast({ title: 'Group Too Large', description: 'Maximum 50 guests per booking. Contact us for larger groups.', variant: 'destructive' });
-      setPax(50);
+    if (pax > maxPax) {
+      toast({ title: 'Group Too Large', description: `Maximum ${maxPax} guests per booking for this operator. Contact us for larger groups.`, variant: 'destructive' });
+      setPax(maxPax);
       return;
     }
 
@@ -206,9 +264,9 @@ function BookingContent() {
       eventName: selectedEvent.name,
       date: bookingDate,
       timeSlot: standardSlots[selectedEvent.slotId].label,
-      pax: safePax,
+      pax: pax,
       pricePerPax: selectedEvent.price,
-      totalPrice: selectedEvent.price * safePax,
+      totalPrice: selectedEvent.price * pax,
       duration: selectedEvent.durationDesc,
       imageUrl: selectedEvent.imageUrl,
     });

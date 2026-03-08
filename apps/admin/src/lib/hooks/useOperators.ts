@@ -24,6 +24,16 @@ export interface Operator {
     authorisedBy?: string;
     authorisedAt?: any;
     migratedFromHardcode?: boolean;
+    // ——— Availability Rules (Phase 6) ———
+    blackoutDates?: string[];       // ISO date strings e.g. ['2026-04-01', '2026-12-25']
+    operatingDays?: number[];       // 0=Sun, 1=Mon ... 6=Sat
+    operatingHoursOpen?: string;    // '08:00'
+    operatingHoursClose?: string;   // '17:00'
+    minGroupSize?: number;
+    maxGroupSize?: number;
+    advanceNoticeHours?: number;    // Minimum hours before tour
+    latitude?: number;
+    longitude?: number;
 }
 
 export function useOperators() {

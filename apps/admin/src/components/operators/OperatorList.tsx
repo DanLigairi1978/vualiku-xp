@@ -15,9 +15,10 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Edit2, MoreVertical, ExternalLink, Plus, ShieldAlert, Trash2 } from 'lucide-react';
+import { Edit2, MoreVertical, ExternalLink, Plus, ShieldAlert, Trash2, CalendarClock } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { OperatorOnboarding } from './OnboardingForm';
+import { AvailabilityEditor } from './AvailabilityEditor';
 import { useOperators, Operator } from '@/lib/hooks/useOperators';
 
 function OperatorRow({
@@ -31,6 +32,7 @@ function OperatorRow({
 }) {
     const [price, setPrice] = useState(op.basePrice?.toString() || '0');
     const [isUpdating, setIsUpdating] = useState(false);
+    const [availOpen, setAvailOpen] = useState(false);
 
     const handlePriceBlur = async () => {
         const numPrice = parseFloat(price);
@@ -60,6 +62,9 @@ function OperatorRow({
             setIsUpdating(false);
         }
     };
+
+    const dayNames = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+    const opDays = op.operatingDays || [1, 2, 3, 4, 5, 6];
 
     return (
         <TableRow className="border-slate-800 hover:bg-slate-800/30 transition-colors group">
@@ -105,10 +110,17 @@ function OperatorRow({
                 </div>
             </TableCell>
             <TableCell>
-                <span className="text-xs text-slate-400 font-medium">{op.capacity || 0} GUESTS</span>
+                <div className="space-y-1">
+                    <span className="text-xs text-slate-400 font-medium">{op.minGroupSize || 1}–{op.maxGroupSize || 50} PAX</span>
+                    <div className="flex gap-0.5">
+                        {dayNames.map((d, i) => (
+                            <span key={i} className={cn("w-4 h-4 rounded text-[8px] flex items-center justify-center font-bold", opDays.includes(i) ? "bg-primary/20 text-primary" : "bg-slate-900 text-slate-700")}>{d}</span>
+                        ))}
+                    </div>
+                </div>
             </TableCell>
             <TableCell>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                     <Button
                         variant="ghost"
                         size="icon"
@@ -117,6 +129,22 @@ function OperatorRow({
                     >
                         <Edit2 className="w-4 h-4" />
                     </Button>
+                    <Dialog open={availOpen} onOpenChange={setAvailOpen}>
+                        <DialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-amber-400 hover:bg-amber-400/10">
+                                <CalendarClock className="w-4 h-4" />
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-lg bg-slate-900 border-slate-800 text-white p-8 rounded-3xl max-h-[90vh] overflow-y-auto">
+                            <DialogHeader className="mb-6">
+                                <DialogTitle className="text-xl font-black font-tahoma uppercase italic tracking-wider flex items-center gap-3">
+                                    <CalendarClock className="w-5 h-5 text-amber-400" />
+                                    Availability — {op.name}
+                                </DialogTitle>
+                            </DialogHeader>
+                            <AvailabilityEditor operator={op} onSaved={() => setAvailOpen(false)} />
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </TableCell>
         </TableRow>
