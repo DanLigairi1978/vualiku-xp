@@ -104,7 +104,7 @@
   }
 
   .btn-outline-forest {
-    @apply px-8 py-4 rounded-full border-2 border-primary/30 bg-transparent text-white font-bold transition-all hover:bg-primary/10 hover:border-primary;
+    @apply px-8 py-4 rounded-full border-2 border-white/30 bg-transparent text-white font-bold transition-all hover:bg-white/10 hover:border-primary;
   }
 }
 

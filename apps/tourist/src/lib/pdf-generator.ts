@@ -1,4 +1,7 @@
-import jsPDF from 'jspdf';
+/* eslint-disable @typescript-eslint/no-require-imports */
+
+// @ts-ignore
+const jsPDF = typeof window !== 'undefined' ? require('jspdf').jsPDF : null
 import { BasketItem } from '@/context/BasketContext';
 import { format, parseISO } from 'date-fns';
 
