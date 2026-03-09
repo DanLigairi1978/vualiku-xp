@@ -1,4 +1,3 @@
-$content = @'
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     logging: {
@@ -70,5 +69,3 @@ const nextConfig = {
     },
 };
 module.exports = nextConfig;
-'@
-[System.IO.File]::WriteAllText("$PWD\apps\tourist\next.config.js", $content, [System.Text.UTF8Encoding]::new($false))
