@@ -18,7 +18,7 @@ import { AIProvider } from '@/context/AIContext';
 import { FeatureFlagsProvider } from '@/context/FeatureFlagsContext';
 import { MaintenanceGate } from '@/components/layout/MaintenanceGate';
 import { BrandingProvider as BrandingContextProvider } from '@/context/BrandingContext';
-import { getAdminFirestore } from '@/lib/firebase/admin';
+
 
 
 export const metadata: Metadata = {
@@ -70,43 +70,6 @@ export const metadata: Metadata = {
 
 const GA_ID = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID;
 
-async function BrandingProvider() {
-  const db = getAdminFirestore();
-  let colors = {
-    primary: '#2D6A4F',
-    secondary: '#1B4332',
-    accent: '#E8C547',
-    background: '#F8F4EE',
-  };
-
-  try {
-    const snap = await db.collection('platformConfig').doc('branding').get();
-    if (snap.exists) {
-      const data = snap.data();
-      if (data?.colors) {
-        colors = {
-          primary: data.colors.primary || colors.primary,
-          secondary: data.colors.secondary || colors.secondary,
-          accent: data.colors.accent || colors.accent,
-          background: data.colors.background || colors.background,
-        };
-      }
-    }
-  } catch (error) {
-    console.error('Failed to fetch branding config:', error);
-  }
-
-  const cssVariables = `
-    :root {
-      --color-primary: ${colors?.primary ?? '#2D6A4F'};
-      --color-secondary: ${colors?.secondary ?? '#1B4332'};
-      --color-accent: ${colors?.accent ?? '#E8C547'};
-      --color-background: ${colors?.background ?? '#F8F4EE'};
-    }
-  `;
-
-  return <style dangerouslySetInnerHTML={{ __html: cssVariables }} />;
-}
 
 export default function RootLayout({
   children,
@@ -126,7 +89,14 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(siteJsonLd) }}
         />
-        <BrandingProvider />
+        <style dangerouslySetInnerHTML={{ __html: `
+  :root {
+    --color-primary: #2D6A4F;
+    --color-secondary: #1B4332;
+    --color-accent: #E8C547;
+    --color-background: #F8F4EE;
+  }
+` }} />
       </head>
       <body className={cn('min-h-screen bg-background font-body antialiased')}>
         <FirebaseClientProvider>
