@@ -34,7 +34,7 @@ const DEFAULT_BRANDING: BrandingConfig = {
         text: '#f8fafc',
     },
     logos: {
-        main: '/images/vualiku-logo.png',
+        main: '/icons/icon-512x512.png',
         favicon: '/favicon.ico',
     },
     typography: {
@@ -57,15 +57,15 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         const unsubscribe = onSnapshot(doc(db, 'platformConfig', 'branding'), (snapshot) => {
             if (snapshot.exists()) {
-                const data = snapshot.data() as BrandingConfig;
+                const data = snapshot.data() as BrandingConfig | undefined;
                 const merged = {
                     ...DEFAULT_BRANDING,
                     ...data,
-                    colors: { ...DEFAULT_BRANDING.colors, ...data.colors },
-                    logos: { ...DEFAULT_BRANDING.logos, ...data.logos },
-                    typography: { ...DEFAULT_BRANDING.typography, ...data.typography },
+                    colors: { ...DEFAULT_BRANDING.colors, ...(data?.colors || {}) },
+                    logos: { ...DEFAULT_BRANDING.logos, ...(data?.logos || {}) },
+                    typography: { ...DEFAULT_BRANDING.typography, ...(data?.typography || {}) },
                 };
-                setBranding(merged);
+                setBranding(merged as BrandingConfig);
             }
             setLoading(false);
         });

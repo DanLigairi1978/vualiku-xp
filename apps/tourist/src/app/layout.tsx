@@ -98,10 +98,10 @@ async function BrandingProvider() {
 
   const cssVariables = `
     :root {
-      --color-primary: ${colors.primary};
-      --color-secondary: ${colors.secondary};
-      --color-accent: ${colors.accent};
-      --color-background: ${colors.background};
+      --color-primary: ${colors?.primary ?? '#2D6A4F'};
+      --color-secondary: ${colors?.secondary ?? '#1B4332'};
+      --color-accent: ${colors?.accent ?? '#E8C547'};
+      --color-background: ${colors?.background ?? '#F8F4EE'};
     }
   `;
 
