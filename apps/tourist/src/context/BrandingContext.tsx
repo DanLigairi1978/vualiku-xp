@@ -26,20 +26,20 @@ export interface BrandingConfig {
 
 const DEFAULT_BRANDING: BrandingConfig = {
     colors: {
-        primary: '#22c55e',
-        secondary: '#1e293b',
-        accent: '#3b82f6',
-        background: '#020617',
-        surface: '#0f172a',
-        text: '#f8fafc',
+        primary: '#2D6A4F',
+        secondary: '#1B4332',
+        accent: '#E8C547',
+        background: '#F8F4EE',
+        surface: '#ffffff',
+        text: '#1f2937',
     },
     logos: {
-        main: '/icons/icon-512x512.png',
+        main: '/images/vualiku-logo.png',
         favicon: '/favicon.ico',
     },
     typography: {
-        primaryFont: 'Tahoma',
-        secondaryFont: 'Inter',
+        primaryFont: 'PT Sans',
+        secondaryFont: 'PT Sans',
     },
 };
 

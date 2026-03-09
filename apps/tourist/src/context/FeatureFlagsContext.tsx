@@ -55,14 +55,14 @@ export interface PlatformFlags {
 const DEFAULT_FLAGS: PlatformFlags = {
     pages: {
         homepage: true, explore: true, packages: true, directory: true,
-        map: true, booking: true, about: true, contact: true, blog: false,
+        map: true, booking: true, about: true, contact: true, blog: true,
     },
     features: {
-        bookings_enabled: true, ai_assistant_enabled: false,
+        bookings_enabled: true, ai_assistant_enabled: true,
         whatsapp_chat_enabled: true, user_registration_enabled: true,
-        operator_portal_active: true, dynamic_pricing_active: false,
-        beta_ui_enabled: false, promo_codes_enabled: false,
-        gift_vouchers_enabled: false, reviews_enabled: true,
+        operator_portal_active: true, dynamic_pricing_active: true,
+        beta_ui_enabled: true, promo_codes_enabled: true,
+        gift_vouchers_enabled: true, reviews_enabled: true,
     },
     maintenance: {
         enabled: false,
@@ -112,10 +112,10 @@ export function FeatureFlagsProvider({ children }: { children: ReactNode }) {
                 if (snap.exists()) {
                     const data = snap.data();
                     const merged: PlatformFlags = {
-                        pages: { ...DEFAULT_FLAGS.pages, ...data.pages },
-                        features: { ...DEFAULT_FLAGS.features, ...data.featureFlags },
-                        maintenance: { ...DEFAULT_FLAGS.maintenance, ...data.maintenance },
-                        bookingWindow: { ...DEFAULT_FLAGS.bookingWindow, ...data.bookingWindow },
+                        pages: { ...DEFAULT_FLAGS.pages, ...(data?.pages || {}) },
+                        features: { ...DEFAULT_FLAGS.features, ...(data?.featureFlags || data?.features || {}) },
+                        maintenance: { ...DEFAULT_FLAGS.maintenance, ...(data?.maintenance || {}) },
+                        bookingWindow: { ...DEFAULT_FLAGS.bookingWindow, ...(data?.bookingWindow || {}) },
                     };
                     setFlags(merged);
                     cachedFlags = merged;
