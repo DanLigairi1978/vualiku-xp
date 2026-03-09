@@ -17,7 +17,8 @@ import { StickyBasketBar } from '@/components/booking/StickyBasketBar';
 import { AIProvider } from '@/context/AIContext';
 import { FeatureFlagsProvider } from '@/context/FeatureFlagsContext';
 import { MaintenanceGate } from '@/components/layout/MaintenanceGate';
-import { BrandingProvider } from '@/context/BrandingContext';
+import { BrandingProvider as BrandingContextProvider } from '@/context/BrandingContext';
+import { getAdminFirestore } from '@/lib/firebase/admin';
 
 
 export const metadata: Metadata = {
@@ -69,6 +70,44 @@ export const metadata: Metadata = {
 
 const GA_ID = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID;
 
+async function BrandingProvider() {
+  const db = getAdminFirestore();
+  let colors = {
+    primary: '#2D6A4F',
+    secondary: '#1B4332',
+    accent: '#E8C547',
+    background: '#F8F4EE',
+  };
+
+  try {
+    const snap = await db.collection('platformConfig').doc('branding').get();
+    if (snap.exists) {
+      const data = snap.data();
+      if (data?.colors) {
+        colors = {
+          primary: data.colors.primary || colors.primary,
+          secondary: data.colors.secondary || colors.secondary,
+          accent: data.colors.accent || colors.accent,
+          background: data.colors.background || colors.background,
+        };
+      }
+    }
+  } catch (error) {
+    console.error('Failed to fetch branding config:', error);
+  }
+
+  const cssVariables = `
+    :root {
+      --color-primary: ${colors.primary};
+      --color-secondary: ${colors.secondary};
+      --color-accent: ${colors.accent};
+      --color-background: ${colors.background};
+    }
+  `;
+
+  return <style dangerouslySetInnerHTML={{ __html: cssVariables }} />;
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -87,11 +126,12 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(siteJsonLd) }}
         />
+        <BrandingProvider />
       </head>
       <body className={cn('min-h-screen bg-background font-body antialiased')}>
         <FirebaseClientProvider>
           <LocaleProvider>
-            <BrandingProvider>
+            <BrandingContextProvider>
               <AuthProvider>
                 <BasketProvider>
                   <AIProvider>
@@ -112,7 +152,7 @@ export default function RootLayout({
                   </AIProvider>
                 </BasketProvider>
               </AuthProvider>
-            </BrandingProvider>
+            </BrandingContextProvider>
           </LocaleProvider>
         </FirebaseClientProvider>
         {GA_ID && <GoogleAnalytics gaId={GA_ID} />}

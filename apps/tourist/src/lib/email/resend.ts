@@ -310,3 +310,64 @@ export async function sendCancellationEmail(data: {
     throw error;
   }
 }
+
+/**
+ * Send signed waiver email with PDF attachment
+ */
+export async function sendWaiverEmail(data: {
+  customerName: string;
+  customerEmail: string;
+  bookingId: string;
+  pdfBuffer: Buffer;
+}) {
+  const config = await getEmailConfig('waiverSigned');
+  const vars = {
+    customerName: data.customerName,
+    bookingId: data.bookingId
+  };
+
+  const { error } = await getResend().emails.send({
+    from: FROM_EMAIL,
+    to: data.customerEmail,
+    subject: parseTemplateString(config.subject, vars),
+    attachments: [
+      {
+        filename: `Vualiku-XP-Waiver-${data.bookingId}.pdf`,
+        content: data.pdfBuffer,
+      },
+    ],
+    html: `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #0a1a0f; color: #e0e0e0; border-radius: 16px; overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #1a3a2a 0%, #0d2818 100%); padding: 40px 30px; text-align: center;">
+          <h1 style="color: #4ade80; font-size: 28px; margin: 0 0 8px;">${parseTemplateString(config.headline, vars)}</h1>
+          <p style="color: #9ca3af; font-size: 14px; margin: 0;">${parseTemplateString(config.subheadline, vars)}</p>
+        </div>
+
+        <div style="padding: 30px;">
+          <p style="font-size: 16px;">${parseTemplateString(config.greeting, vars)}</p>
+          <p style="color: #9ca3af; line-height: 1.6;">${parseTemplateString(config.bodyIntro, vars)}</p>
+
+          <div style="background: #1a2e1f; border: 1px solid #2d4a35; border-radius: 12px; padding: 20px; text-align: center; margin: 20px 0;">
+             <p style="color: #4ade80; font-weight: bold; margin: 0;">Activity Waiver Attached</p>
+             <p style="color: #9ca3af; font-size: 12px; margin-top: 4px;">Booking ID: ${data.bookingId}</p>
+          </div>
+
+          <hr style="border: none; border-top: 1px solid #2d4a35; margin: 24px 0;" />
+
+          <p style="color: #6b7280; font-size: 12px; text-align: center; line-height: 1.6;">
+            ${parseTemplateString(config.footerText, vars)}
+          </p>
+        </div>
+      </div>
+    `,
+  });
+
+  if (error) {
+    console.error('[email] Failed to send waiver email:', error);
+    if (error.message?.toLowerCase().includes('limit') || error.message?.toLowerCase().includes('quota') || error.message?.includes('429')) {
+      console.warn('[email] Resend daily limit reached. Email skipped gracefully.');
+      return;
+    }
+    throw error;
+  }
+}

@@ -66,33 +66,12 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
                     typography: { ...DEFAULT_BRANDING.typography, ...data.typography },
                 };
                 setBranding(merged);
-                applyBranding(merged);
-            } else {
-                applyBranding(DEFAULT_BRANDING);
             }
             setLoading(false);
         });
 
         return () => unsubscribe();
     }, []);
-
-    const applyBranding = (config: BrandingConfig) => {
-        if (typeof document === 'undefined') return;
-
-        const root = document.documentElement;
-
-        // Apply Colors
-        root.style.setProperty('--brand-primary', config.colors.primary);
-        root.style.setProperty('--brand-secondary', config.colors.secondary);
-        root.style.setProperty('--brand-accent', config.colors.accent);
-        root.style.setProperty('--brand-background', config.colors.background);
-        root.style.setProperty('--brand-surface', config.colors.surface);
-        root.style.setProperty('--brand-text', config.colors.text);
-
-        // Apply Fonts
-        root.style.setProperty('--font-primary', config.typography.primaryFont);
-        root.style.setProperty('--font-secondary', config.typography.secondaryFont);
-    };
 
     return (
         <BrandingContext.Provider value={{ branding, loading }}>

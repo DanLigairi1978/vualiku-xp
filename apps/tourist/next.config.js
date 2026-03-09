@@ -40,6 +40,15 @@ const nextConfig = {
             },
         ],
     },
+    async redirects() {
+        return [
+            {
+                source: '/_deprecated_ai_planner',
+                destination: '/explore',
+                permanent: true,
+            },
+        ];
+    },
 };
 
 module.exports = nextConfig;

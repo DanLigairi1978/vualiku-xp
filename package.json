@@ -16,6 +16,7 @@
     "migrate:images": "npx ts-node scripts/migrate-operator-images.ts"
   },
   "devDependencies": {
+    "pnpm": "^10.31.0",
     "turbo": "^2.0.0"
   },
   "dependencies": {

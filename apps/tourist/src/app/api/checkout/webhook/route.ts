@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
                             if (!promosSnapshot.empty) {
                                 const promoDoc = promosSnapshot.docs[0];
                                 await promoDoc.ref.update({
-                                    usageCount: FieldValue.increment(1) // Assuming import from firebase-admin is present
+                                    currentUses: FieldValue.increment(1)
                                 });
                                 console.log(`[webhook] Incremented usage for promo code: ${bookingData.promoCode}`);
                             }

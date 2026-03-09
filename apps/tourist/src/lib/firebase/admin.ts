@@ -1,5 +1,6 @@
 import { initializeApp, getApps, cert, type ServiceAccount } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
+import { getStorage } from 'firebase-admin/storage';
 
 function getAdminApp() {
     if (getApps().length === 0) {
@@ -24,4 +25,9 @@ function getAdminApp() {
 export function getAdminFirestore() {
     getAdminApp();
     return getFirestore();
+}
+
+export function getAdminStorage() {
+    getAdminApp();
+    return getStorage();
 }

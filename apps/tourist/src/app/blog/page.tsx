@@ -1,48 +1,30 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
-import { db } from '@vualiku/shared';
-import { BlogPost } from '@vualiku/shared';
+import { Metadata } from 'next';
+import { getAdminFirestore } from '@/lib/firebase/admin';
 import { format } from 'date-fns';
-import { Calendar, User, ArrowRight, BookOpen, Loader2, Tag } from 'lucide-react';
+import { Calendar, User, ArrowRight, BookOpen, Tag } from 'lucide-react';
 import Link from 'next/link';
 
-export default function BlogIndexPage() {
-    const [posts, setPosts] = useState<BlogPost[]>([]);
-    const [loading, setLoading] = useState(true);
+export const metadata: Metadata = {
+    title: 'Blog | Vualiku XP',
+    description: 'Stories from the edge of the world. Dive deep into the culture, nature, and community stories of Vanua Levu.',
+};
 
-    useEffect(() => {
-        const fetchPosts = async () => {
-            try {
-                const q = query(
-                    collection(db, 'blogPosts'),
-                    where('status', '==', 'published'),
-                    orderBy('publishedAt', 'desc')
-                );
-                const querySnapshot = await getDocs(q);
-                const data = querySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                })) as BlogPost[];
-                setPosts(data);
-            } catch (error) {
-                console.error("Error fetching blog posts:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
+export default async function BlogIndexPage() {
+    const db = getAdminFirestore();
+    let posts: any[] = [];
 
-        fetchPosts();
-    }, []);
+    try {
+        const snapshot = await db.collection('blogPosts')
+            .where('status', '==', 'published')
+            .orderBy('publishedAt', 'desc')
+            .get();
 
-    if (loading) {
-        return (
-            <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
-                <Loader2 className="w-12 h-12 animate-spin text-emerald-500" />
-                <p className="text-slate-400 font-medium animate-pulse uppercase tracking-widest text-xs">Gathering Stories...</p>
-            </div>
-        );
+        posts = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+    } catch (error) {
+        console.error("Error fetching blog posts:", error);
     }
 
     return (
@@ -73,7 +55,7 @@ export default function BlogIndexPage() {
                         <div className="w-20 h-20 rounded-3xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 mb-8 border border-emerald-500/20 shadow-inner">
                             <BookOpen className="w-10 h-10" />
                         </div>
-                        <h2 className="text-2xl font-bold text-white mb-4 italic tracking-tight uppercase font-tahoma">The library is currently quiet.</h2>
+                        <h2 className="text-2xl font-bold text-white mb-4 italic tracking-tight uppercase font-tahoma">No posts yet — check back soon</h2>
                         <p className="text-slate-500 mb-8 font-light">We're out in the field gathering new stories. Check back soon for updates from the heart of Fiji.</p>
                         <Link href="/explore">
                             <button className="bg-emerald-500 text-slate-950 px-8 h-12 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-emerald-400 transition-all hover:scale-105 shadow-lg shadow-emerald-500/20">
@@ -86,9 +68,9 @@ export default function BlogIndexPage() {
                         {posts.map((post) => (
                             <Link key={post.id} href={`/blog/${post.slug}`} className="group flex flex-col h-full bg-slate-900/40 backdrop-blur-md border border-slate-800/50 rounded-[2rem] overflow-hidden hover:border-emerald-500/50 transition-all duration-500 hover:-translate-y-2 shadow-xl shadow-black/20">
                                 <div className="aspect-[16/10] overflow-hidden relative">
-                                    {post.coverImage ? (
+                                    {post.coverImage || post.coverImageUrl ? (
                                         <img
-                                            src={post.coverImage}
+                                            src={post.coverImage || post.coverImageUrl}
                                             alt={post.title}
                                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                         />
@@ -98,7 +80,7 @@ export default function BlogIndexPage() {
                                         </div>
                                     )}
                                     <div className="absolute top-6 left-6 flex flex-wrap gap-2">
-                                        {post.tags?.slice(0, 2).map((tag, idx) => (
+                                        {post.tags?.slice(0, 2).map((tag: string, idx: number) => (
                                             <span key={idx} className="bg-slate-950/80 backdrop-blur-md border border-slate-800 text-emerald-400 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest leading-none">
                                                 {tag}
                                             </span>
@@ -107,7 +89,7 @@ export default function BlogIndexPage() {
                                 </div>
                                 <div className="p-8 flex flex-col flex-1">
                                     <div className="flex items-center gap-4 text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-4">
-                                        <div className="flex items-center gap-1.5"><Calendar className="w-3 h-3 text-emerald-500" /> {format(post.publishedAt.toDate(), 'MMM d, yyyy')}</div>
+                                        <div className="flex items-center gap-1.5"><Calendar className="w-3 h-3 text-emerald-500" /> {post.publishedAt ? format(post.publishedAt.toDate(), 'MMM d, yyyy') : 'Recently'}</div>
                                         <div className="flex items-center gap-1.5"><User className="w-3 h-3 text-emerald-500" /> {post.author}</div>
                                     </div>
                                     <h3 className="text-2xl font-black text-white mb-4 group-hover:text-emerald-400 transition-colors leading-tight italic font-tahoma uppercase tracking-tight">

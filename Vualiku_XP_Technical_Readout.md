@@ -19,8 +19,8 @@
 ### Database & Backend
 - **Firebase Firestore:** Real-time NoSQL database for bookings, applications, activities, and reviews.
 - **Firebase Authentication:** Handles user sign-ins, operator identities, and admin roles.
-- **Firebase Admin SDK:** Used in API routes for secure server-side operations (e.g., bypass rules, write protected data).
-- **Node.js (Next.js Runtime):** Server-side logic for API endpoints.
+- **Node.js (Next.js Runtime):** Vercel Serverless API routes for backend logic.
+- **Next.js API Routes:** Secure server-side operations (e.g., bypass rules, write protected data).
 
 ### Frontend & UI
 - **Tailwind CSS:** Utility-first CSS for responsive, performant design.
@@ -32,7 +32,7 @@
 - **Framer Motion:** Smooth micro-animations and page transitions.
 
 ### Third-Party Integrations
-- **Stripe:** Payment gateway for processing FJD transactions.
+- **Windcave:** Payment gateway for processing FJD transactions.
 - **Twilio:** Messaging gateway for WhatsApp notifications and SMS alerts.
 - **OpenWeatherMap API:** Real-time weather data for Vanua Levu.
 - **Algolia:** High-performance search index for the tour directory.
@@ -72,8 +72,8 @@
 4. **Processing:**
    - Server validates availability and pricing using `MasterEvent` data.
    - `allBookings` collection in Firestore is updated with 'pending' status.
-5. **Checkout:** User redirected to Stripe via `/api/checkout/create-session`.
-6. **Confirmation:** Stripe Webhook (`/api/checkout/webhook`) receives payment success.
+5. **Checkout:** User redirected to Windcave via `/api/checkout/create-session`.
+6. **Confirmation:** Windcave Callback (`/api/checkout/windcave-callback`) receives payment success.
    - Updates Firestore status to 'confirmed'.
    - Triggers `sendBookingConfirmedWhatsApp` via Twilio.
 
@@ -86,7 +86,7 @@
 - `POST /api/bookings/cancel`: Handles user-initiated or admin-initiated cancellations.
 
 ### 💳 Payment APIs
-- `POST /api/checkout/create-session`: Generates a Stripe Checkout URL.
+- **POST /api/checkout/create-session**: Generates a Windcave Checkout URL.
 - `POST /api/checkout/webhook`: Receives asynchronous payment status updates.
 
 ### 🏢 Operator APIs

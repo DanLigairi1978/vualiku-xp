@@ -12,9 +12,34 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
+import { useFeatureFlags } from '@/context/FeatureFlagsContext';
+
 function ExploreContent() {
+    const { pages } = useFeatureFlags();
     const searchParams = useSearchParams();
     const router = useRouter();
+
+    if (pages.explore === false) {
+        return (
+            <div className="min-h-screen bg-[#0a110d] flex items-center justify-center text-white px-6">
+                <div className="text-center space-y-8 max-w-md">
+                    <div className="w-24 h-24 mx-auto rounded-3xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 shadow-2xl">
+                        <Compass className="w-12 h-12" />
+                    </div>
+                    <div className="space-y-2">
+                        <h1 className="text-4xl font-black italic font-tahoma uppercase tracking-tighter">Coming Soon</h1>
+                        <p className="text-slate-400 font-light">We're currently scouting the best adventures in Vanua Levu. Check back shortly for our full directory.</p>
+                    </div>
+                    <Link href="/" className="inline-block">
+                        <button className="flex items-center gap-2 text-emerald-500 font-bold uppercase tracking-widest text-xs hover:text-emerald-400 transition-colors">
+                            <ArrowLeft className="w-4 h-4" /> Back to Home
+                        </button>
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
     const initialCategory = searchParams.get('category');
     const [filtersOpen, setFiltersOpen] = useState(true);
 

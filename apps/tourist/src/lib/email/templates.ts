@@ -3,7 +3,8 @@ export type TemplateKey =
     | 'tripReminder'
     | 'reviewRequest'
     | 'bookingCancellation'
-    | 'operatorWelcome';
+    | 'operatorWelcome'
+    | 'waiverSigned';
 
 export interface EmailTemplateConfig {
     subject: string;
@@ -59,6 +60,14 @@ export const DEFAULT_TEMPLATES: Record<TemplateKey, EmailTemplateConfig> = {
         bodyIntro: "Great news! Your application to join Vualiku XP as an experience operator has been approved. You can now log in to the Operator Portal to manage your profile, team, and bookings.",
         callToAction: "Access Operator Portal",
         footerText: "Vinaka vakalevu — Vualiku XP Team 🌿"
+    },
+    waiverSigned: {
+        subject: "Your Vualiku XP Waiver — {{bookingId}}",
+        headline: "Waiver Signed ✓",
+        subheadline: "Vualiku XP Digital Waiver System",
+        greeting: "Bula, {{customerName}}!",
+        bodyIntro: "Please find your signed Vualiku XP activity waiver attached for booking {{bookingId}}.",
+        footerText: "This is a legally binding document. Please keep it for your records.\\nVinaka vakalevu — Vualiku XP Team 🌿"
     }
 };
 

@@ -145,6 +145,40 @@ export async function POST(request: NextRequest) {
             }
         }
 
+        // --- SECURE PROMO VALIDATION (Fixing L4-C1 "Trust the Client" vulnerability) ---
+        let finalDiscountAmount = 0;
+        let validatedPromoCode = null;
+
+        if (promoCode) {
+            const promosRef = db.collection('promos');
+            const promoSnap = await promosRef.where('code', '==', promoCode.trim().toUpperCase()).limit(1).get();
+
+            if (!promoSnap.empty) {
+                const promoDoc = promoSnap.docs[0];
+                const promoData = promoDoc.data();
+
+                // Validation logic mirrored from frontend for consistency but executed on server for security
+                const isActive = promoData.active !== false;
+                const isNotExhausted = !promoData.maxUses || (promoData.currentUses || 0) < promoData.maxUses;
+
+                let isNotExpired = true;
+                if (promoData.expiryDate) {
+                    const expiry = parseISO(promoData.expiryDate);
+                    expiry.setHours(23, 59, 59, 999);
+                    isNotExpired = new Date() < expiry;
+                }
+
+                if (isActive && isNotExhausted && isNotExpired) {
+                    validatedPromoCode = promoData.code;
+                    if (promoData.discountType === 'percentage') {
+                        finalDiscountAmount = totalFee * (promoData.discountValue / 100);
+                    } else {
+                        finalDiscountAmount = Math.min(totalFee, promoData.discountValue);
+                    }
+                }
+            }
+        }
+
         if (totalFee <= 0) {
             return NextResponse.json({ error: 'Total fee must be greater than zero' }, { status: 400 });
         }
@@ -168,8 +202,8 @@ export async function POST(request: NextRequest) {
             guestCount,
             paymentStatus: 'pending',
             status: 'unconfirmed',
-            promoCode: promoCode || null,
-            discountAmount: discountAmount || 0,
+            promoCode: validatedPromoCode,
+            discountAmount: finalDiscountAmount,
             createdAt: FieldValue.serverTimestamp(),
             userId: auth.uid,
             userEmail: auth.email,
