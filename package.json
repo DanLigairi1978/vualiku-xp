@@ -20,6 +20,7 @@
     "turbo": "^2.0.0"
   },
   "dependencies": {
+    "@google-cloud/storage": "^7.19.0",
     "cross-env": "^10.1.0"
   }
 }
