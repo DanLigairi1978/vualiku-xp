@@ -1,3 +1,4 @@
+$content = @'
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     logging: {
@@ -10,6 +11,18 @@ const nextConfig = {
     },
     eslint: {
         ignoreDuringBuilds: true,
+    },
+    webpack: (config, { isServer }) => {
+        if (isServer) {
+            config.externals = [...(config.externals || []), 'canvas', 'canvg', 'dompurify'];
+        }
+        config.resolve.alias = {
+            ...config.resolve.alias,
+            canvas: false,
+            canvg: false,
+            dompurify: false,
+        };
+        return config;
     },
     images: {
         unoptimized: true,
@@ -34,9 +47,15 @@ const nextConfig = {
             },
             {
                 protocol: 'https',
-                hostname: 'www.fijivacations.com',
+                hostname: 'firebasestorage.googleapis.com',
                 port: '',
-                pathname: '/wp-content/uploads/2014/12/Matangi-Matangi-Beach.jpg'
+                pathname: '/**',
+            },
+            {
+                protocol: 'https',
+                hostname: 'storage.googleapis.com',
+                port: '',
+                pathname: '/**',
             },
         ],
     },
@@ -50,5 +69,6 @@ const nextConfig = {
         ];
     },
 };
-
 module.exports = nextConfig;
+'@
+[System.IO.File]::WriteAllText("$PWD\apps\tourist\next.config.js", $content, [System.Text.UTF8Encoding]::new($false))
