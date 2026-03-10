@@ -84,14 +84,44 @@ export function useFeatureFlags() {
     return useContext(FlagsContext);
 }
 
+const CACHE_KEY = 'vxp_feature_flags';
+
+function loadCachedFlags(): PlatformFlags | null {
+    if (typeof window === 'undefined') return null;
+    try {
+        const cached = sessionStorage.getItem(CACHE_KEY);
+        if (cached) return JSON.parse(cached);
+    } catch { }
+    return null;
+}
+
+function saveToCache(flags: PlatformFlags) {
+    if (typeof window === 'undefined') return;
+    try {
+        sessionStorage.setItem(CACHE_KEY, JSON.stringify(flags));
+    } catch { }
+}
+
 // ——— Provider ———
 
 export function FeatureFlagsProvider({ children }: { children: ReactNode }) {
-    const [flags, setFlags] = useState<PlatformFlags>(DEFAULT_FLAGS);
+    const [flags, setFlags] = useState<PlatformFlags>(() => {
+        const cached = loadCachedFlags();
+        if (cached) {
+            return {
+                pages: { ...DEFAULT_FLAGS.pages, ...cached.pages },
+                features: { ...DEFAULT_FLAGS.features, ...cached.features },
+                maintenance: { ...DEFAULT_FLAGS.maintenance, ...cached.maintenance },
+                bookingWindow: { ...DEFAULT_FLAGS.bookingWindow, ...cached.bookingWindow },
+            };
+        }
+        return DEFAULT_FLAGS;
+    });
     const [loaded, setLoaded] = useState(false);
 
     useEffect(() => {
         const ref = doc(db, 'platformConfig', 'features');
+        let hasReceivedData = false;
 
         const unsubscribe = onSnapshot(
             ref,
@@ -104,7 +134,12 @@ export function FeatureFlagsProvider({ children }: { children: ReactNode }) {
                         maintenance: { ...DEFAULT_FLAGS.maintenance, ...(data?.maintenance || {}) },
                         bookingWindow: { ...DEFAULT_FLAGS.bookingWindow, ...(data?.bookingWindow || {}) },
                     };
+                    hasReceivedData = true;
                     setFlags(merged);
+                    saveToCache(merged);
+                } else if (!hasReceivedData) {
+                    // Doc doesn't exist yet, keep defaults and cache them
+                    saveToCache(DEFAULT_FLAGS);
                 }
                 setLoaded(true);
             },
