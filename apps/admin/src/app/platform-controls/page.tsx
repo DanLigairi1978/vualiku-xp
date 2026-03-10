@@ -183,36 +183,6 @@ export default function PlatformControlsPage() {
                 </div>
             </header>
 
-            {/* Warning Banner */}
-            {hasChanges && (
-                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between shadow-lg sticky top-6 z-50 backdrop-blur-xl gap-4">
-                    <div className="flex items-center gap-3">
-                        <AlertTriangle className="w-5 h-5 text-yellow-400" />
-                        <span className="text-sm font-bold text-yellow-400">⚠️ You have unsaved changes</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleDiscard}
-                            className="text-slate-300 hover:text-white hover:bg-slate-800"
-                        >
-                            <X className="w-4 h-4 mr-2" />
-                            Discard
-                        </Button>
-                        <Button
-                            size="sm"
-                            disabled={isSaving}
-                            onClick={handleSave}
-                            className="bg-green-600 hover:bg-green-500 text-white font-bold"
-                        >
-                            <Save className={cn("w-4 h-4 mr-2", isSaving && "animate-pulse")} />
-                            {isSaving ? "Saving..." : "Save Changes"}
-                        </Button>
-                    </div>
-                </div>
-            )}
-
             {/* Maintenance Mode Banner */}
             {localConfig.maintenance.enabled && (
                 <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-6 flex items-center gap-4">
@@ -401,6 +371,53 @@ export default function PlatformControlsPage() {
                                 </div>
                             )}
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Sticky Footer Bar */}
+            <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-700 bg-gray-900/95 backdrop-blur-sm p-4">
+                <div className="max-w-4xl mx-auto flex items-center justify-between">
+                    <span className={cn(
+                        "text-sm font-medium",
+                        hasChanges ? "text-yellow-400" : "text-gray-500"
+                    )}>
+                        {hasChanges ? "⚠️ You have unsaved changes" : "✓ All changes saved"}
+                    </span>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={handleDiscard}
+                            disabled={!hasChanges}
+                            className={cn(
+                                "px-6 py-3 rounded-lg font-bold",
+                                "border border-gray-600",
+                                "transition-all duration-200",
+                                hasChanges
+                                    ? "text-white hover:bg-gray-700 cursor-pointer"
+                                    : "text-gray-600 cursor-not-allowed opacity-30"
+                            )}
+                        >
+                            Discard Changes
+                        </button>
+                        <button
+                            onClick={handleSave}
+                            disabled={!hasChanges || isSaving}
+                            className={cn(
+                                "px-6 py-3 rounded-lg font-bold",
+                                "transition-all duration-200",
+                                hasChanges
+                                    ? "bg-green-600 hover:bg-green-500 text-white cursor-pointer"
+                                    : "bg-gray-600 text-gray-400 cursor-not-allowed opacity-50"
+                            )}
+                        >
+                            {isSaving ? (
+                                <span>Saving...</span>
+                            ) : hasChanges ? (
+                                <span>Save Changes</span>
+                            ) : (
+                                <span>All Changes Saved ✓</span>
+                            )}
+                        </button>
                     </div>
                 </div>
             </div>

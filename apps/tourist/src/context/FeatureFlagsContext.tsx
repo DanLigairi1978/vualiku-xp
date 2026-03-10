@@ -1,7 +1,7 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@vualiku/shared';
 
 // ——— Types matching admin PlatformConfig ———
@@ -84,31 +84,18 @@ export function useFeatureFlags() {
     return useContext(FlagsContext);
 }
 
-// ——— 60-second cache ———
-
-let cachedFlags: PlatformFlags | null = null;
-let cachedAt = 0;
-const CACHE_TTL = 60_000;
-
 // ——— Provider ———
 
 export function FeatureFlagsProvider({ children }: { children: ReactNode }) {
-    const [flags, setFlags] = useState<PlatformFlags>(cachedFlags || DEFAULT_FLAGS);
-    const fetched = useRef(false);
+    const [flags, setFlags] = useState<PlatformFlags>(DEFAULT_FLAGS);
+    const [loaded, setLoaded] = useState(false);
 
     useEffect(() => {
-        if (fetched.current) return;
-        fetched.current = true;
+        const ref = doc(db, 'platformConfig', 'features');
 
-        // Return cached if fresh
-        if (cachedFlags && Date.now() - cachedAt < CACHE_TTL) {
-            setFlags(cachedFlags);
-            return;
-        }
-
-        const fetchFlags = async () => {
-            try {
-                const snap = await getDoc(doc(db, 'platformConfig', 'features'));
+        const unsubscribe = onSnapshot(
+            ref,
+            (snap) => {
                 if (snap.exists()) {
                     const data = snap.data();
                     const merged: PlatformFlags = {
@@ -118,16 +105,16 @@ export function FeatureFlagsProvider({ children }: { children: ReactNode }) {
                         bookingWindow: { ...DEFAULT_FLAGS.bookingWindow, ...(data?.bookingWindow || {}) },
                     };
                     setFlags(merged);
-                    cachedFlags = merged;
-                    cachedAt = Date.now();
                 }
-            } catch (err) {
-                console.error('Failed to fetch feature flags:', err);
-                // Keep defaults
+                setLoaded(true);
+            },
+            (error) => {
+                console.error('Feature flags error:', error);
+                setLoaded(true);
             }
-        };
+        );
 
-        fetchFlags();
+        return () => unsubscribe();
     }, []);
 
     return (

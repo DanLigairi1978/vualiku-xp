@@ -19,7 +19,7 @@ function ExploreContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
 
-    if (pages.explore === false) {
+    if (pages?.showExplorePage === false) {
         return (
             <div className="min-h-screen bg-[#0a110d] flex items-center justify-center text-white px-6">
                 <div className="text-center space-y-8 max-w-md">

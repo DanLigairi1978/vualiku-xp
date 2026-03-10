@@ -1,0 +1,24 @@
+﻿node.exe : (node:15796) 
+ExperimentalWarning: Support 
+for loading ES Module in 
+require() is an experimental 
+feature and might change at 
+any time
+At C:\Program 
+Files\nodejs\npx.ps1:29 char:3
++   & $NODE_EXE $NPX_CLI_JS 
+$args
++   
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : 
+    NotSpecified: ((node:157  
+  96) Ex...nge at any time:   
+ String) [], RemoteExcepti    
+on
+    + FullyQualifiedErrorId : 
+    NativeCommandError
+ 
+(Use `node --trace-warnings 
+...` to show where the 
+warning was created)
+src/app/explore/page.tsx(22,15): error TS2339: Property 'explore' does not exist on type 'PageFlags'.
