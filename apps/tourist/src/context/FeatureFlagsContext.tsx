@@ -7,15 +7,15 @@ import { db } from '@vualiku/shared';
 // ——— Types matching admin PlatformConfig ———
 
 interface PageFlags {
-    homepage: boolean;
-    explore: boolean;
-    packages: boolean;
-    directory: boolean;
-    map: boolean;
-    booking: boolean;
-    about: boolean;
-    contact: boolean;
-    blog: boolean;
+    showHomePage: boolean;
+    showExplorePage: boolean;
+    showPackagesPage: boolean;
+    showDirectoryPage: boolean;
+    showMapPage: boolean;
+    showBookingPage: boolean;
+    showAboutPage: boolean;
+    showContactPage: boolean;
+    showBlogPage: boolean;
 }
 
 interface FeatureFlags {
@@ -54,8 +54,8 @@ export interface PlatformFlags {
 
 const DEFAULT_FLAGS: PlatformFlags = {
     pages: {
-        homepage: true, explore: true, packages: true, directory: true,
-        map: true, booking: true, about: true, contact: true, blog: true,
+        showHomePage: true, showExplorePage: true, showPackagesPage: true, showDirectoryPage: true,
+        showMapPage: true, showBookingPage: true, showAboutPage: true, showContactPage: true, showBlogPage: true,
     },
     features: {
         bookings_enabled: true, ai_assistant_enabled: true,

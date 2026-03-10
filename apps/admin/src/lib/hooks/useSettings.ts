@@ -7,15 +7,15 @@ import { db } from '@vualiku/shared';
 export interface PlatformConfig {
     // ——— Page Toggles ———
     pages: {
-        homepage: boolean;
-        explore: boolean;
-        packages: boolean;
-        directory: boolean;
-        map: boolean;
-        booking: boolean;
-        about: boolean;
-        contact: boolean;
-        blog: boolean;
+        showHomePage: boolean;
+        showExplorePage: boolean;
+        showPackagesPage: boolean;
+        showDirectoryPage: boolean;
+        showMapPage: boolean;
+        showBookingPage: boolean;
+        showAboutPage: boolean;
+        showContactPage: boolean;
+        showBlogPage: boolean;
     };
     // ——— Feature Flags ———
     featureFlags: {
@@ -51,17 +51,17 @@ export interface PlatformConfig {
     updatedAt?: any;
 }
 
-const DEFAULT_CONFIG: PlatformConfig = {
+export const DEFAULT_CONFIG: PlatformConfig = {
     pages: {
-        homepage: true,
-        explore: true,
-        packages: true,
-        directory: true,
-        map: true,
-        booking: true,
-        about: true,
-        contact: true,
-        blog: false,
+        showHomePage: true,
+        showExplorePage: true,
+        showPackagesPage: true,
+        showDirectoryPage: true,
+        showMapPage: true,
+        showBookingPage: true,
+        showAboutPage: true,
+        showContactPage: true,
+        showBlogPage: false,
     },
     featureFlags: {
         bookings_enabled: true,

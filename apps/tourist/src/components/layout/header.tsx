@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useSiteContent } from '@/hooks/useSiteContent';
+import { useFeatureFlags } from '@/context/FeatureFlagsContext';
 
 // Hardcoded fallback — used until Firestore loads
 const FALLBACK_NAV = [
@@ -46,12 +47,28 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isAuthModalOpen, setAuthModalOpen] = useState(false);
   const { global } = useSiteContent();
+  const flags = useFeatureFlags();
+
+  const isPageVisible = (href: string) => {
+    switch (href) {
+      case '/': return flags?.pages?.showHomePage !== false;
+      case '/explore': return flags?.pages?.showExplorePage !== false;
+      case '/packages': return flags?.pages?.showPackagesPage !== false;
+      case '/directory': return flags?.pages?.showDirectoryPage !== false;
+      case '/map': return flags?.pages?.showMapPage !== false;
+      case '/booking': return flags?.pages?.showBookingPage !== false;
+      case '/blog': return flags?.pages?.showBlogPage !== false;
+      case '/about': return flags?.pages?.showAboutPage !== false;
+      case '/contact': return flags?.pages?.showContactPage !== false;
+      default: return true;
+    }
+  };
 
   // Use Firestore nav items (filtered by visible), fall back to hardcoded
   const navLinks = (global.navigation.items.length > 0
     ? global.navigation.items
     : FALLBACK_NAV
-  ).filter(item => item.visible);
+  ).filter(item => item.visible && isPageVisible(item.href));
 
   useEffect(() => {
     const handleScroll = () => {

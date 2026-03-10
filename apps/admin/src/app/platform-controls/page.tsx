@@ -1,6 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '@vualiku/shared';
+import { toast } from 'sonner';
 import {
     ToggleLeft,
     Globe,
@@ -19,58 +22,117 @@ import {
     EyeOff,
     AlertTriangle,
     Wrench,
+    Save,
+    X
 } from 'lucide-react';
-import { useSettings, PlatformConfig } from '@/lib/hooks/useSettings';
+import { PlatformConfig, DEFAULT_CONFIG } from '@/lib/hooks/useSettings';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 export default function PlatformControlsPage() {
-    const { config, loading, updateConfig } = useSettings();
-    const [saving, setSaving] = useState(false);
+    const [savedConfig, setSavedConfig] = useState<PlatformConfig>(DEFAULT_CONFIG);
+    const [localConfig, setLocalConfig] = useState<PlatformConfig>(DEFAULT_CONFIG);
+    const [loading, setLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
 
-    const handleTogglePage = async (key: keyof PlatformConfig['pages'], val: boolean) => {
-        if (!config) return;
-        setSaving(true);
+    const checkHasChanges = () => {
+        const { updatedAt: _u1, ...lConfig } = localConfig;
+        const { updatedAt: _u2, ...sConfig } = savedConfig;
+        return JSON.stringify(lConfig) !== JSON.stringify(sConfig);
+    };
+    const hasChanges = checkHasChanges();
+
+    useEffect(() => {
+        const fetchFlags = async () => {
+            try {
+                const snap = await getDoc(doc(db, 'platformConfig', 'features'));
+                if (snap.exists()) {
+                    const data = snap.data() as Partial<PlatformConfig>;
+                    const merged: PlatformConfig = {
+                        pages: { ...DEFAULT_CONFIG.pages, ...data.pages },
+                        featureFlags: { ...DEFAULT_CONFIG.featureFlags, ...data.featureFlags },
+                        maintenance: { ...DEFAULT_CONFIG.maintenance, ...data.maintenance },
+                        bookingWindow: { ...DEFAULT_CONFIG.bookingWindow, ...data.bookingWindow },
+                        pricingRules: { ...DEFAULT_CONFIG.pricingRules, ...data.pricingRules },
+                        updatedAt: data.updatedAt,
+                    };
+                    setSavedConfig(merged);
+                    setLocalConfig(merged);
+                }
+            } catch (err) {
+                console.error('Failed to load platform controls', err);
+                toast.error('Failed to load settings');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchFlags();
+    }, []);
+
+    const handleTogglePage = (key: keyof PlatformConfig['pages']) => {
+        setLocalConfig(prev => ({
+            ...prev,
+            pages: { ...prev.pages, [key]: !prev.pages[key] }
+        }));
+    };
+
+    const handleToggleFlag = (key: keyof PlatformConfig['featureFlags']) => {
+        setLocalConfig(prev => ({
+            ...prev,
+            featureFlags: { ...prev.featureFlags, [key]: !prev.featureFlags[key] }
+        }));
+    };
+
+    const handleUpdateMaintenance = (partial: Partial<PlatformConfig['maintenance']>) => {
+        setLocalConfig(prev => ({
+            ...prev,
+            maintenance: { ...prev.maintenance, ...partial }
+        }));
+    };
+
+    const handleUpdateBookingWindow = (partial: Partial<PlatformConfig['bookingWindow']>) => {
+        setLocalConfig(prev => ({
+            ...prev,
+            bookingWindow: { ...prev.bookingWindow, ...partial }
+        }));
+    };
+
+    const handleSave = async () => {
+        setIsSaving(true);
         try {
-            await updateConfig({ pages: { ...config.pages, [key]: val } });
+            const savePayload = { ...localConfig, updatedAt: serverTimestamp() };
+            await setDoc(doc(db, 'platformConfig', 'features'), savePayload, { merge: true });
+
+            // Re-fetch to get real serverTimestamp
+            const snap = await getDoc(doc(db, 'platformConfig', 'features'));
+            if (snap.exists()) {
+                const refreshed = snap.data() as Partial<PlatformConfig>;
+                const finalMerge: PlatformConfig = {
+                    ...localConfig,
+                    updatedAt: refreshed.updatedAt
+                };
+                setSavedConfig(finalMerge);
+                setLocalConfig(finalMerge);
+            } else {
+                setSavedConfig(localConfig);
+            }
+            toast.success('Platform controls saved successfully');
+        } catch (error) {
+            console.error('Error saving config:', error);
+            toast.error('Failed to save — please try again');
         } finally {
-            setSaving(false);
+            setIsSaving(false);
         }
     };
 
-    const handleToggleFlag = async (key: keyof PlatformConfig['featureFlags'], val: boolean) => {
-        if (!config) return;
-        setSaving(true);
-        try {
-            await updateConfig({ featureFlags: { ...config.featureFlags, [key]: val } });
-        } finally {
-            setSaving(false);
-        }
+    const handleDiscard = () => {
+        setLocalConfig(savedConfig);
     };
 
-    const handleUpdateMaintenance = async (partial: Partial<PlatformConfig['maintenance']>) => {
-        if (!config) return;
-        setSaving(true);
-        try {
-            await updateConfig({ maintenance: { ...config.maintenance, ...partial } });
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const handleUpdateBookingWindow = async (partial: Partial<PlatformConfig['bookingWindow']>) => {
-        if (!config) return;
-        setSaving(true);
-        try {
-            await updateConfig({ bookingWindow: { ...config.bookingWindow, ...partial } });
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    if (loading || !config) {
+    if (loading) {
         return (
             <div className="p-8 flex items-center justify-center h-[50vh]">
                 <p className="text-[10px] font-black uppercase text-slate-500 tracking-[0.3em] animate-pulse">Loading Platform Controls...</p>
@@ -79,15 +141,15 @@ export default function PlatformControlsPage() {
     }
 
     const pageToggles: { id: keyof PlatformConfig['pages']; label: string; desc: string }[] = [
-        { id: 'homepage', label: 'Homepage', desc: 'Main landing page with hero, stats, and mood grid' },
-        { id: 'explore', label: 'Explore', desc: 'Browse all tours and experiences by category' },
-        { id: 'packages', label: 'Packages', desc: 'Pre-built multi-day itinerary packages' },
-        { id: 'directory', label: 'Directory', desc: 'Operator listing and search directory' },
-        { id: 'map', label: 'Map', desc: 'Interactive Google Maps with operator pins' },
-        { id: 'booking', label: 'Booking', desc: 'Tour booking portal and event basket' },
-        { id: 'about', label: 'About', desc: 'Company story, mission, and team section' },
-        { id: 'contact', label: 'Contact', desc: 'Contact form and office details' },
-        { id: 'blog', label: 'Blog', desc: 'Blog posts and content articles' },
+        { id: 'showHomePage', label: 'Homepage', desc: 'Main landing page with hero, stats, and mood grid' },
+        { id: 'showExplorePage', label: 'Explore', desc: 'Browse all tours and experiences by category' },
+        { id: 'showPackagesPage', label: 'Packages', desc: 'Pre-built multi-day itinerary packages' },
+        { id: 'showDirectoryPage', label: 'Directory', desc: 'Operator listing and search directory' },
+        { id: 'showMapPage', label: 'Map', desc: 'Interactive Google Maps with operator pins' },
+        { id: 'showBookingPage', label: 'Booking', desc: 'Tour booking portal and event basket' },
+        { id: 'showAboutPage', label: 'About', desc: 'Company story, mission, and team section' },
+        { id: 'showContactPage', label: 'Contact', desc: 'Contact form and office details' },
+        { id: 'showBlogPage', label: 'Blog', desc: 'Blog posts and content articles' },
     ];
 
     const featureFlags: { id: keyof PlatformConfig['featureFlags']; label: string; desc: string; icon: React.ReactNode; color?: string }[] = [
@@ -104,7 +166,7 @@ export default function PlatformControlsPage() {
     ];
 
     return (
-        <main className="p-8 max-w-[1400px] mx-auto space-y-12">
+        <main className="p-8 max-w-[1400px] mx-auto space-y-12 pb-32">
             <header className="flex justify-between items-end">
                 <div className="space-y-1">
                     <div className="flex items-center gap-2 mb-2">
@@ -119,18 +181,42 @@ export default function PlatformControlsPage() {
                         Master switches for every tourist site page, feature, and system behavior.
                     </p>
                 </div>
-                <div className="bg-slate-900 border border-slate-800 p-3 rounded-2xl flex items-center gap-3">
-                    <div className={cn("w-2 h-2 rounded-full animate-pulse", saving ? "bg-yellow-400" : "bg-green-400")} />
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">
-                        {saving ? "SYNCING..." : "LIVE SYNC"}
-                    </span>
-                </div>
             </header>
 
+            {/* Warning Banner */}
+            {hasChanges && (
+                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between shadow-lg sticky top-6 z-50 backdrop-blur-xl gap-4">
+                    <div className="flex items-center gap-3">
+                        <AlertTriangle className="w-5 h-5 text-yellow-400" />
+                        <span className="text-sm font-bold text-yellow-400">⚠️ You have unsaved changes</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleDiscard}
+                            className="text-slate-300 hover:text-white hover:bg-slate-800"
+                        >
+                            <X className="w-4 h-4 mr-2" />
+                            Discard
+                        </Button>
+                        <Button
+                            size="sm"
+                            disabled={isSaving}
+                            onClick={handleSave}
+                            className="bg-green-600 hover:bg-green-500 text-white font-bold"
+                        >
+                            <Save className={cn("w-4 h-4 mr-2", isSaving && "animate-pulse")} />
+                            {isSaving ? "Saving..." : "Save Changes"}
+                        </Button>
+                    </div>
+                </div>
+            )}
+
             {/* Maintenance Mode Banner */}
-            {config.maintenance.enabled && (
+            {localConfig.maintenance.enabled && (
                 <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-6 flex items-center gap-4">
-                    <AlertTriangle className="w-6 h-6 text-red-400 shrink-0" />
+                    <ShieldAlert className="w-6 h-6 text-red-400 shrink-0" />
                     <div>
                         <p className="text-sm font-bold text-red-400 uppercase tracking-wide">Maintenance Mode Active</p>
                         <p className="text-xs text-slate-400 mt-1">The tourist site is showing the maintenance message to all visitors.</p>
@@ -159,8 +245,8 @@ export default function PlatformControlsPage() {
                             {pageToggles.map((page) => (
                                 <div key={page.id} className="p-5 flex items-center justify-between group hover:bg-slate-800/20 transition-all">
                                     <div className="flex items-center gap-4">
-                                        <div className={cn("w-8 h-8 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-center transition-colors", config.pages[page.id] ? "text-primary" : "text-slate-700")}>
-                                            {config.pages[page.id] ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                                        <div className={cn("w-8 h-8 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-center transition-colors", localConfig.pages[page.id] ? "text-primary" : "text-slate-700")}>
+                                            {localConfig.pages[page.id] ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                                         </div>
                                         <div>
                                             <p className="text-sm font-bold text-white uppercase tracking-tight">{page.label}</p>
@@ -168,8 +254,8 @@ export default function PlatformControlsPage() {
                                         </div>
                                     </div>
                                     <Switch
-                                        checked={config.pages[page.id]}
-                                        onCheckedChange={(val) => handleTogglePage(page.id, val)}
+                                        checked={localConfig.pages[page.id]}
+                                        onCheckedChange={() => handleTogglePage(page.id)}
                                         className="data-[state=checked]:bg-primary"
                                     />
                                 </div>
@@ -195,7 +281,7 @@ export default function PlatformControlsPage() {
                             {featureFlags.map((flag) => (
                                 <div key={flag.id} className="p-5 flex items-center justify-between group hover:bg-slate-800/20 transition-all">
                                     <div className="flex items-center gap-4">
-                                        <div className={cn("w-8 h-8 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-center transition-colors", config.featureFlags[flag.id] ? (flag.color || "text-primary") : "text-slate-700")}>
+                                        <div className={cn("w-8 h-8 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-center transition-colors", localConfig.featureFlags[flag.id] ? (flag.color || "text-primary") : "text-slate-700")}>
                                             {flag.icon}
                                         </div>
                                         <div>
@@ -204,8 +290,8 @@ export default function PlatformControlsPage() {
                                         </div>
                                     </div>
                                     <Switch
-                                        checked={config.featureFlags[flag.id]}
-                                        onCheckedChange={(val) => handleToggleFlag(flag.id, val)}
+                                        checked={localConfig.featureFlags[flag.id]}
+                                        onCheckedChange={() => handleToggleFlag(flag.id)}
                                         className="data-[state=checked]:bg-primary"
                                     />
                                 </div>
@@ -218,7 +304,7 @@ export default function PlatformControlsPage() {
                 <div className="space-y-8">
 
                     {/* Maintenance Mode */}
-                    <div className={cn("border rounded-3xl p-8 space-y-6 relative overflow-hidden", config.maintenance.enabled ? "bg-red-500/5 border-red-500/20" : "bg-slate-900 border-slate-800")}>
+                    <div className={cn("border rounded-3xl p-8 space-y-6 relative overflow-hidden", localConfig.maintenance.enabled ? "bg-red-500/5 border-red-500/20" : "bg-slate-900 border-slate-800")}>
                         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[60px] pointer-events-none" />
 
                         <div className="flex items-center justify-between">
@@ -226,7 +312,7 @@ export default function PlatformControlsPage() {
                                 <Wrench className="w-4 h-4 text-yellow-400" /> Maintenance Mode
                             </h3>
                             <Switch
-                                checked={config.maintenance.enabled}
+                                checked={localConfig.maintenance.enabled}
                                 onCheckedChange={(val) => handleUpdateMaintenance({ enabled: val })}
                                 className="data-[state=checked]:bg-red-500"
                             />
@@ -236,7 +322,7 @@ export default function PlatformControlsPage() {
                             <div className="space-y-2">
                                 <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Maintenance Message</Label>
                                 <textarea
-                                    value={config.maintenance.message}
+                                    value={localConfig.maintenance.message}
                                     onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleUpdateMaintenance({ message: e.target.value })}
                                     className="w-full bg-slate-950 border border-slate-800 min-h-[80px] rounded-xl text-sm text-white resize-none p-3 focus:outline-none focus:border-primary/50"
                                     placeholder="We are currently performing maintenance..."
@@ -249,7 +335,7 @@ export default function PlatformControlsPage() {
                                     <p className="text-[10px] text-slate-500">Admins can still browse during maintenance</p>
                                 </div>
                                 <Switch
-                                    checked={config.maintenance.allowAdmins}
+                                    checked={localConfig.maintenance.allowAdmins}
                                     onCheckedChange={(val) => handleUpdateMaintenance({ allowAdmins: val })}
                                     className="data-[state=checked]:bg-primary"
                                 />
@@ -271,7 +357,7 @@ export default function PlatformControlsPage() {
                                 <Input
                                     type="number"
                                     min={0}
-                                    value={config.bookingWindow.minAdvanceHours}
+                                    value={localConfig.bookingWindow.minAdvanceHours}
                                     onChange={(e) => handleUpdateBookingWindow({ minAdvanceHours: parseInt(e.target.value) || 0 })}
                                     className="bg-slate-950 border-slate-800 h-12 rounded-xl text-sm font-bold text-primary font-mono"
                                 />
@@ -283,7 +369,7 @@ export default function PlatformControlsPage() {
                                 <Input
                                     type="number"
                                     min={1}
-                                    value={config.bookingWindow.maxAdvanceDays}
+                                    value={localConfig.bookingWindow.maxAdvanceDays}
                                     onChange={(e) => handleUpdateBookingWindow({ maxAdvanceDays: parseInt(e.target.value) || 90 })}
                                     className="bg-slate-950 border-slate-800 h-12 rounded-xl text-sm font-bold text-primary font-mono"
                                 />
@@ -302,16 +388,16 @@ export default function PlatformControlsPage() {
                             </div>
                             <div className="flex justify-between text-xs">
                                 <span className="text-slate-500">Active Pages</span>
-                                <span className="text-white font-bold">{Object.values(config.pages).filter(Boolean).length}/{Object.keys(config.pages).length}</span>
+                                <span className="text-white font-bold">{Object.values(localConfig.pages).filter(Boolean).length}/{Object.keys(localConfig.pages).length}</span>
                             </div>
                             <div className="flex justify-between text-xs">
                                 <span className="text-slate-500">Active Features</span>
-                                <span className="text-white font-bold">{Object.values(config.featureFlags).filter(Boolean).length}/{Object.keys(config.featureFlags).length}</span>
+                                <span className="text-white font-bold">{Object.values(localConfig.featureFlags).filter(Boolean).length}/{Object.keys(localConfig.featureFlags).length}</span>
                             </div>
-                            {config.updatedAt && (
+                            {savedConfig.updatedAt && (
                                 <div className="flex justify-between text-xs">
                                     <span className="text-slate-500">Last Update</span>
-                                    <span className="text-slate-400 text-[10px]">{new Date(config.updatedAt.seconds * 1000).toLocaleString()}</span>
+                                    <span className="text-slate-400 text-[10px]">{new Date(savedConfig.updatedAt.seconds * 1000).toLocaleString()}</span>
                                 </div>
                             )}
                         </div>
