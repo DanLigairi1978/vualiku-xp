@@ -65,10 +65,7 @@ export default function Header() {
   };
 
   // Use Firestore nav items (filtered by visible), fall back to hardcoded
-  const navLinks = (global.navigation.items.length > 0
-    ? global.navigation.items
-    : FALLBACK_NAV
-  ).filter(item => item.visible && isPageVisible(item.href));
+  const navLinks = FALLBACK_NAV.filter(item => isPageVisible(item.href));
 
   useEffect(() => {
     const handleScroll = () => {
