@@ -40,8 +40,9 @@ export function AIProvider({ children }: { children: React.ReactNode }) {
 
 export function useAIContext() {
     const context = useContext(AIContext);
-    if (context === undefined) {
-        throw new Error('useAIContext must be used within an AIProvider');
-    }
-    return context;
+    return context ?? { 
+        currentPage: 'Home',
+        contextData: {},
+        setContextData: () => {}
+    };
 }

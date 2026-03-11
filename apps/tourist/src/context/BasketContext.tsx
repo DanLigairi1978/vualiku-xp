@@ -124,8 +124,14 @@ export function BasketProvider({ children }: { children: React.ReactNode }) {
 
 export function useBasket() {
     const context = useContext(BasketContext);
-    if (context === undefined) {
-        throw new Error('useBasket must be used within a BasketProvider');
-    }
-    return context;
+    return context ?? {
+        items: [],
+        addItem: () => {},
+        removeItem: () => {},
+        clearBasket: () => {},
+        origin: null,
+        setOrigin: () => {},
+        appliedPromo: null,
+        setAppliedPromo: () => {}
+    };
 }
