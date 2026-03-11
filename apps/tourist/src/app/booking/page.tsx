@@ -60,7 +60,7 @@ function BookingContent() {
   const [phone, setPhone] = useState('');
   const [whatsappPhone, setWhatsappPhone] = useState('');
   const [whatsappOptIn, setWhatsappOptIn] = useState(false);
-  const { features } = useFeatureFlags();
+  const flags = useFeatureFlags();
 
   // Promo Code State
   const [promoInput, setPromoInput] = useState('');
@@ -650,7 +650,7 @@ function BookingContent() {
             )}
 
             {/* Promo Code Section */}
-            {items.length > 0 && features.promo_codes_enabled && (
+            {items.length > 0 && (
               <div className="mt-4 pt-4 border-t border-white/10 space-y-3">
                 <Label className="text-xs font-bold text-primary/70 uppercase tracking-widest flex items-center gap-2">
                   <Ticket className="w-3 h-3" /> Add Promo Code
