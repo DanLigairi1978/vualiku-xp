@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { useBranding } from '@/context/BrandingContext';
 
 export function Logo() {
@@ -16,14 +15,18 @@ export function Logo() {
           />
         </div>
       ) : (
-        <div className="relative w-10 h-10 flex items-center justify-center">
-          <div className="absolute inset-0 bg-primary/20 rounded-full blur-lg animate-pulse" />
-          <div className="relative w-8 h-8 bg-primary rounded-tr-[1.5rem] rounded-bl-[1.5rem] rotate-12 flex items-center justify-center">
-            <div className="w-1 h-5 bg-background/40 rounded-full -rotate-45" />
-          </div>
+        <div className="relative h-10 w-auto flex items-center justify-center">
+          {/* VXP SVG Logo Representation */}
+          <svg viewBox="0 0 160 80" className="h-10 w-auto" xmlns="http://www.w3.org/2000/svg">
+            <g font-family="Arial Black, Impact, sans-serif" font-weight="900" font-size="80" letter-spacing="-14" transform="matrix(1 0 -0.1 1 10 70)">
+              <text x="0" y="0" fill="#3AA820">V</text>
+              <text x="45" y="0" fill="#3B3B3B">X</text>
+              <text x="96" y="0" fill="#808080">P</text>
+            </g>
+          </svg>
         </div>
       )}
-      <span className="text-2xl font-bold tracking-tight text-white font-primary">
+      <span className="text-2xl font-bold tracking-tight text-white font-primary hidden md:inline-block">
         VUALIKU<span className="text-primary italic">XP</span>
       </span>
     </Link>
