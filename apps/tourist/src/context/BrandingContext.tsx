@@ -34,7 +34,7 @@ const DEFAULT_BRANDING: BrandingConfig = {
         text: '#1f2937',
     },
     logos: {
-        main: '/images/vualiku-logo.png',
+        main: '/vualiku-logo.png',
         favicon: '/favicon.ico',
     },
     typography: {
@@ -82,8 +82,5 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
 
 export function useBranding() {
     const context = useContext(BrandingContext);
-    if (context === undefined) {
-        throw new Error('useBranding must be used within a BrandingProvider');
-    }
-    return context;
+    return context ?? { branding: DEFAULT_BRANDING, loading: false };
 }
