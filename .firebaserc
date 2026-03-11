@@ -5,8 +5,12 @@
   "targets": {
     "vualiku-xp": {
       "hosting": {
-        "tourist": ["vualiku-xp"],
-        "admin": ["vualiku-admin"]
+        "tourist": [
+          "vualiku-xp"
+        ],
+        "admin": [
+          "vualiku-admin"
+        ]
       }
     }
   }
