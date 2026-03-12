@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { AuthModal } from '@/components/auth/auth-modal';
 import { useBasket } from '@/context/BasketContext';
 import { useToast } from '@/hooks/use-toast';
-import { tourCompanies, TourCompany, masterEvents, MasterEvent, standardSlots, pointsOfOrigin, TimeSlotId, PlaceHolderImages, db } from '@vualiku/shared';
+import { tourCompanies, TourCompany, masterEvents, MasterEvent, standardSlots, pointsOfOrigin, TimeSlotId, PlaceHolderImages, db } from '@danligairi1978/shared';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { checkForScheduleConflict } from '@/lib/booking-utils';
 import { format, parseISO, addDays } from 'date-fns';

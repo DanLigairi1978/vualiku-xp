@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireApiKey } from '@/lib/api/v1-auth';
-import { adminDb } from '@vualiku/shared/server';
+import { adminDb } from '@danligairi1978/shared/server';
 import { FieldValue } from 'firebase-admin/firestore';
-import { masterEvents } from '@vualiku/shared';
+import { masterEvents } from '@danligairi1978/shared';
 import { calculateDynamicPrice } from '@/lib/pricing/dynamic-pricing';
 import { parseISO } from 'date-fns';
 

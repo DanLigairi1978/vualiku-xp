@@ -9,7 +9,7 @@ import type {
     WebhookEvent,
     RefundInput,
     RefundResult,
-} from '@vualiku/shared';
+} from '@danligairi1978/shared';
 
 const PAYDOCK_API_URL = process.env.PAYDOCK_API_URL || 'https://api.paydock.com/v1';
 const PAYDOCK_SECRET_KEY = process.env.PAYDOCK_SECRET_KEY || '';

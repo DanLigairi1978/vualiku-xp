@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 import { usePackages, Package } from '@/lib/hooks/usePackages';
 import { useOperators } from '@/lib/hooks/useOperators';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '@vualiku/shared';
+import { storage } from '@danligairi1978/shared';
 import { Upload, X, Plus, ChevronLeft, ChevronRight, Check, Loader2, Package as PackageIcon, MapPin, Settings2, Eye } from 'lucide-react';
 
 interface PackageFormProps {

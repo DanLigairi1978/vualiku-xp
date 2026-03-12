@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { collection, onSnapshot, query, addDoc, updateDoc, doc, deleteDoc, serverTimestamp, orderBy } from 'firebase/firestore';
-import { db } from '@vualiku/shared';
-import { BlogPost } from '@vualiku/shared';
+import { db } from '@danligairi1978/shared';
+import { BlogPost } from '@danligairi1978/shared';
 
 export function useBlog() {
     const [posts, setPosts] = useState<BlogPost[]>([]);

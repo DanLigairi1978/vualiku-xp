@@ -1,6 +1,6 @@
 // Operator Welcome Email Template — Vualiku XP
 // Sent when an operator application is approved
-import { adminDb } from '@vualiku/shared/server';
+import { adminDb } from '@danligairi1978/shared/server';
 import { DEFAULT_TEMPLATES, parseTemplateString, TemplateKey, EmailTemplateConfig } from './templates';
 
 export interface WelcomeEmailData {

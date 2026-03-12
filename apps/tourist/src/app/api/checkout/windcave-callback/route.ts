@@ -4,7 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getPaymentProvider } from '@/lib/payments/provider';
-import { adminDb } from '@vualiku/shared/server';
+import { adminDb } from '@danligairi1978/shared/server';
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
-import { db } from '@vualiku/shared';
+import { db } from '@danligairi1978/shared';
 
 export type TemplateKey =
     | 'bookingConfirmation'

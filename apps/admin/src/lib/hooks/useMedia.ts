@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { collection, onSnapshot, query, addDoc, doc, deleteDoc, serverTimestamp, orderBy } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { db, storage } from '@vualiku/shared';
-import { MediaAsset } from '@vualiku/shared';
+import { db, storage } from '@danligairi1978/shared';
+import { MediaAsset } from '@danligairi1978/shared';
 
 export function useMedia() {
     const [assets, setAssets] = useState<MediaAsset[]>([]);

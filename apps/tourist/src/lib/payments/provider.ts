@@ -1,7 +1,7 @@
 // Payment Provider Factory — Vualiku XP
 // Reads PAYMENT_PROVIDER from env and returns the active provider implementation
 
-import type { PaymentProvider } from '@vualiku/shared';
+import type { PaymentProvider } from '@danligairi1978/shared';
 
 export function getPaymentProvider(): PaymentProvider {
     const providerName = process.env.PAYMENT_PROVIDER || 'paydock';
@@ -27,4 +27,4 @@ export function getPaymentProvider(): PaymentProvider {
 }
 
 // Re-export types for convenience
-export type { PaymentProvider, CreateSessionInput, CreateSessionResult, WebhookEvent, RefundInput, RefundResult, LineItem } from '@vualiku/shared';
+export type { PaymentProvider, CreateSessionInput, CreateSessionResult, WebhookEvent, RefundInput, RefundResult, LineItem } from '@danligairi1978/shared';

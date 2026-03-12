@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { tourCompanies, type TourCompany, PlaceHolderImages } from '@vualiku/shared';
+import { tourCompanies, type TourCompany, PlaceHolderImages } from '@danligairi1978/shared';
 import { Waves, Mountain, Compass, Moon, ArrowRight } from 'lucide-react';
 import { useBookingDrawer } from '@/hooks/use-booking-drawer';
 import { StarRatingDisplay } from '@/components/ui/star-rating';

@@ -3,7 +3,7 @@
  * Handles the state machine for conversational bookings
  */
 
-import { masterEvents, standardSlots, tourCompanies, db } from '@vualiku/shared';
+import { masterEvents, standardSlots, tourCompanies, db } from '@danligairi1978/shared';
 import { doc, getDoc } from 'firebase/firestore';
 
 export interface BotState {

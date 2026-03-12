@@ -8,7 +8,7 @@ import {
     WebhookEvent,
     RefundInput,
     RefundResult
-} from '@vualiku/shared';
+} from '@danligairi1978/shared';
 
 export class WindcaveProvider implements PaymentProvider {
     name = 'windcave';

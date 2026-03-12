@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
-import { auth } from '@vualiku/shared';
+import { auth } from '@danligairi1978/shared';
 import { useRouter } from 'next/navigation';
 import { ShieldCheck, Loader2, ArrowRight } from 'lucide-react';
 

@@ -2,7 +2,7 @@
 // Sends transactional emails via Resend API
 
 import { Resend } from 'resend';
-import { adminDb } from '@vualiku/shared/server';
+import { adminDb } from '@danligairi1978/shared/server';
 import { DEFAULT_TEMPLATES, parseTemplateString, TemplateKey, EmailTemplateConfig } from './templates';
 
 let _resend: Resend | null = null;

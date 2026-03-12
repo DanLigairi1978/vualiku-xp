@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPaymentProvider } from '@/lib/payments/provider';
 import { requireAuth } from '@/lib/api/auth';
-import { adminDb } from '@vualiku/shared/server';
+import { adminDb } from '@danligairi1978/shared/server';
 
 
 export async function POST(request: NextRequest) {

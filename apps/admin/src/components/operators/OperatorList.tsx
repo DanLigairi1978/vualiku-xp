@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { collection, onSnapshot } from 'firebase/firestore';
-import { db, tourCompanies } from '@vualiku/shared';
+import { db, tourCompanies } from '@danligairi1978/shared';
 import { OperatorAvatar } from '@/components/ui/OperatorAvatar';
 import { cn } from '@/lib/utils';
 import {

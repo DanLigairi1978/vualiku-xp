@@ -25,7 +25,7 @@
       "@/*": [
         "./src/*"
       ],
-      "@vualiku/shared": [
+      "@danligairi1978/shared": [
         "../../packages/shared/src/index.ts"
       ]
     },

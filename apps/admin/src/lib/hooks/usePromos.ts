@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { collection, onSnapshot, query, addDoc, updateDoc, doc, deleteDoc, serverTimestamp, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '@vualiku/shared';
+import { db } from '@danligairi1978/shared';
 
 export interface PromoCode {
     id: string;

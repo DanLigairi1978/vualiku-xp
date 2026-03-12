@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { collection, query, onSnapshot, orderBy, limit } from 'firebase/firestore';
-import { db } from '@vualiku/shared';
+import { db } from '@danligairi1978/shared';
 import { format } from 'date-fns';
 import { MapPin, Calendar, Clock, ChevronRight, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';

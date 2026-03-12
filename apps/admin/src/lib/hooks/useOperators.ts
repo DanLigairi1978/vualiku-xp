@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { collection, onSnapshot, query, addDoc, updateDoc, doc, deleteDoc, serverTimestamp, setDoc, getDocs } from 'firebase/firestore';
-import { db, tourCompanies, PricingOverride } from '@vualiku/shared';
+import { db, tourCompanies, PricingOverride } from '@danligairi1978/shared';
 
 export interface Operator {
     id: string;

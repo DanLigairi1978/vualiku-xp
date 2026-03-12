@@ -3,7 +3,7 @@
 // All multipliers are configurable; base prices come from MasterEvent data.
 
 import { formatFJD } from '@/lib/currency';
-import { PricingOverride } from '@vualiku/shared';
+import { PricingOverride } from '@danligairi1978/shared';
 
 // ─── Season Config ───────────────────────────────────────────────
 export type Season = 'peak' | 'shoulder' | 'off';

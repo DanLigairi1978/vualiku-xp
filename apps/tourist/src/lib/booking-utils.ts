@@ -1,5 +1,5 @@
 import { BasketItem } from '@/context/BasketContext';
-import { MasterEvent, TimeSlotId, standardSlots } from '@vualiku/shared';
+import { MasterEvent, TimeSlotId, standardSlots } from '@danligairi1978/shared';
 
 export function checkForScheduleConflict(
     existingBasket: BasketItem[],

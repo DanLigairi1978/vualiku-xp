@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { useBookingDrawer } from '@/hooks/use-booking-drawer';
 import { useBasket } from '@/context/BasketContext';
-import { masterEvents, tourCompanies } from '@vualiku/shared';
+import { masterEvents, tourCompanies } from '@danligairi1978/shared';
 import { Calendar as CalendarIcon, Users, ArrowRight, Minus, Plus, ShoppingBasket } from 'lucide-react';
 import Image from 'next/image';
 import { format } from 'date-fns';

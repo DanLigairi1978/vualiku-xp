@@ -5,7 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendBookingConfirmation } from '@/lib/email/resend';
 import { requireAuth, rateLimit, rateLimitResponse } from '@/lib/api/auth';
-import { adminDb } from '@vualiku/shared/server';
+import { adminDb } from '@danligairi1978/shared/server';
 
 
 export async function POST(request: NextRequest) {

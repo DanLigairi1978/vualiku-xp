@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { collection, query, onSnapshot, where, orderBy } from 'firebase/firestore';
-import { db } from '@vualiku/shared';
+import { db } from '@danligairi1978/shared';
 import { format, startOfDay, endOfDay } from 'date-fns';
 import { Calendar as CalendarIcon, MapPin, Users, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';

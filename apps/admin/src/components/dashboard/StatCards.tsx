@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { collection, query, onSnapshot, where, orderBy, limit } from 'firebase/firestore';
-import { db } from '@vualiku/shared';
+import { db } from '@danligairi1978/shared';
 import { Activity, CreditCard, ShieldCheck, Users, TrendingUp, TrendingDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

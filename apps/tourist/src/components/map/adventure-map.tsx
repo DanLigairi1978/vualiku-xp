@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow } from '@vis.gl/react-google-maps';
-import { tourCompanies, db } from '@vualiku/shared';
+import { tourCompanies, db } from '@danligairi1978/shared';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';

@@ -6,7 +6,7 @@ import { useBasket } from '@/context/BasketContext';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { sortBasketChronologically } from '@/lib/booking-utils';
-import { pointsOfOrigin, getEstimatedTravelTime, masterEvents } from '@vualiku/shared';
+import { pointsOfOrigin, getEstimatedTravelTime, masterEvents } from '@danligairi1978/shared';
 import { format, parseISO } from 'date-fns';
 import { Trash2, MapPin, Navigation, Clock, CreditCard, ChevronLeft, Download, AlertTriangle, Loader2, ShieldCheck } from 'lucide-react';
 import { GoogleMapPreview } from '@/components/booking/google-map-preview';

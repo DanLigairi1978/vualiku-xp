@@ -10,7 +10,7 @@ import { ShieldCheck, Info, MapPin, CreditCard, ChevronRight, ChevronLeft, Check
 import { cn } from '@/lib/utils';
 import { useOperators, Operator } from '@/lib/hooks/useOperators';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '@vualiku/shared';
+import { storage } from '@danligairi1978/shared';
 
 interface OnboardingFormProps {
     initialData?: Partial<Operator>;

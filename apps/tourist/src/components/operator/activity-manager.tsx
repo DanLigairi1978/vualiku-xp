@@ -20,7 +20,7 @@ import {
     Image as ImageIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { MasterEvent, masterEvents } from '@vualiku/shared';
+import { MasterEvent, masterEvents } from '@danligairi1978/shared';
 
 interface ActivityManagerProps {
     operatorId?: string;

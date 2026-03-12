@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
-import { db } from '@vualiku/shared';
+import { db } from '@danligairi1978/shared';
 import { useFeatureFlags } from '@/context/FeatureFlagsContext';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';

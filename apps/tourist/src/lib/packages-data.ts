@@ -1,4 +1,4 @@
-import { masterEvents } from '@vualiku/shared';
+import { masterEvents } from '@danligairi1978/shared';
 
 export interface SeasonalPackage {
     id: string;

@@ -41,7 +41,7 @@
         "@upstash/ratelimit": "^2.0.8",
         "@upstash/redis": "^1.36.3",
         "@vis.gl/react-google-maps": "^1.7.1",
-        "@vualiku/shared": "*",
+        "@danligairi1978/shared": "*",
         "algoliasearch": "^5.49.1",
         "canvg": "^4.0.3",
         "class-variance-authority": "^0.7.1",

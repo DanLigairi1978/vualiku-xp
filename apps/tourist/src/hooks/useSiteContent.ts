@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@vualiku/shared';
+import { db } from '@danligairi1978/shared';
 
 // ——— Type definitions matching admin useContent.ts schema ———
 

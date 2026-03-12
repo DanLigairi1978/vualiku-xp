@@ -1,7 +1,6 @@
 {
-    "name": "@vualiku/shared",
+    "name": "@danligairi1978/shared",
     "version": "0.1.0",
-    "private": true,
     "main": "./src/index.ts",
     "types": "./src/index.ts",
     "exports": {

@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, User, signOut } from 'firebase/auth';
-import { auth, db } from '@vualiku/shared';
+import { auth, db } from '@danligairi1978/shared';
 import { doc, getDoc } from 'firebase/firestore';
 
 interface AuthContextType {

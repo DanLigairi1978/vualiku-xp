@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { collection, onSnapshot, query, doc, getDoc } from 'firebase/firestore';
-import { db } from '@vualiku/shared';
-import { PricingOverride } from '@vualiku/shared';
+import { db } from '@danligairi1978/shared';
+import { PricingOverride } from '@danligairi1978/shared';
 
 export interface Operator {
     id: string;

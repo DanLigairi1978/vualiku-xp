@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminDb, requireAdmin } from '@vualiku/shared/server';
+import { adminDb, requireAdmin } from '@danligairi1978/shared/server';
 
 export async function GET(request: NextRequest) {
     try {

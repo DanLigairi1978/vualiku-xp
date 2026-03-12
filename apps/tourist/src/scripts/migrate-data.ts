@@ -1,6 +1,6 @@
 import 'dotenv/config';
-import { adminDb } from '@vualiku/shared/server';
-import { tourCompanies, masterEvents } from '@vualiku/shared';
+import { adminDb } from '@danligairi1978/shared/server';
+import { tourCompanies, masterEvents } from '@danligairi1978/shared';
 
 async function migrate() {
     console.log('--- Vualiku XP Data Migration ---');

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireApiKey } from '@/lib/api/v1-auth';
-import { masterEvents } from '@vualiku/shared';
+import { masterEvents } from '@danligairi1978/shared';
 
 export async function GET(request: NextRequest) {
     // 1. Authenticate with API Key

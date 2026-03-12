@@ -4,7 +4,7 @@
 // C3 fix: Actually performs Firestore update (no longer a no-op)
 
 import { NextRequest, NextResponse } from 'next/server';
-import { adminDb, requireAdmin } from '@vualiku/shared/server';
+import { adminDb, requireAdmin } from '@danligairi1978/shared/server';
 
 // Initialize Firebase Admin (server-side)
 const db = adminDb;
