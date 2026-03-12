@@ -45,3 +45,5 @@ jobs:
           channelId: live
           projectId: vualiku-xp
           entryPoint: apps/tourist
+        env:
+          FIREBASE_CLI_EXPERIMENTS: webframeworks
