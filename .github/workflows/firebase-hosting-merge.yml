@@ -34,10 +34,12 @@ jobs:
           echo "WAIVERS_LIVE=false" >> apps/tourist/.env.local
       - name: Install root dependencies
         run: npm ci
-      - name: Install tourist dependencies
-        run: npm ci
-        working-directory: apps/tourist
-      - name: Build
-        run: npm run build
-        working-directory: apps/tourist
       - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_VUALIKU_XP }}
+          channelId: live
+          projectId: vualiku-xp
+          entryPoint: apps/tourist
+        env:
+          FIREBASE_CLI_EXPERIMENTS: webframeworks
